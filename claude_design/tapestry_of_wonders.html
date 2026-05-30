@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tapestry of Wonders</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Serif+SC:wght@400;500;600&family=Noto+Serif+JP:wght@400;500&family=Noto+Serif+Devanagari:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #0a0820;
+  }
+  #stage { position: fixed; inset: 0; }
+  #kaleido {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 0;
+  }
+
+  .corner-flower {
+    position: absolute;
+    pointer-events: none;
+    z-index: 1;
+    width: clamp(160px, 27vw, 400px);
+    height: auto;
+    filter: drop-shadow(0 4px 16px rgba(0,0,0,0.35));
+  }
+  .cf-tl { top: 0; left: 0; }
+  .cf-tr { top: 0; right: 0; }
+  .cf-bl { bottom: 0; left: 0; }
+  .cf-br { bottom: 0; right: 0; }
+
+  #titles {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(0.5rem, 1.9vh, 1.3rem);
+    text-align: center;
+    pointer-events: none;
+    will-change: transform;
+  }
+  /* a stronger scrim keeps the titles legible now the whole field is colour */
+  #titles::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 98vmin;
+    height: 70vmin;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(ellipse at center,
+      rgba(6,5,22,0.66) 0%, rgba(6,5,22,0.40) 42%, rgba(6,5,22,0) 72%);
+    filter: blur(7px);
+    z-index: -1;
+  }
+
+  .lang {
+    line-height: 1.25;
+    background-image: linear-gradient(
+      100deg,
+      #ff2e63, #ff8a00, #ffe14d, #2be08a,
+      #16d0e6, #5a7bff, #c46bff, #ff2e63
+    );
+    background-size: 240% auto;
+    background-position: 0% center;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    animation: radiate 9s linear infinite;
+    /* soft dark halo replaces the hard outline for legibility */
+    filter:
+      drop-shadow(0 1px 2px rgba(4,3,18,0.9))
+      drop-shadow(0 2px 16px rgba(4,3,18,0.7));
+  }
+  @keyframes radiate { to { background-position: 240% center; } }
+
+  .t-en {
+    font-family: "Cormorant Garamond", serif;
+    font-weight: 600;
+    font-size: clamp(2.4rem, 7vw, 6rem);
+    letter-spacing: 0.05em;
+  }
+  .t-zh {
+    font-family: "Noto Serif SC", serif;
+    font-weight: 600;
+    font-size: clamp(1.7rem, 4.8vw, 3.2rem);
+    letter-spacing: 0.3em;
+    padding-left: 0.3em;
+  }
+  .t-ja {
+    font-family: "Noto Serif JP", serif;
+    font-weight: 500;
+    font-size: clamp(1.45rem, 3.9vw, 2.7rem);
+    letter-spacing: 0.2em;
+    padding-left: 0.2em;
+  }
+  .t-hi {
+    font-family: "Noto Serif Devanagari", serif;
+    font-weight: 500;
+    font-size: clamp(1.2rem, 3.1vw, 2.2rem);
+    letter-spacing: 0.05em;
+  }
+  .t-it {
+    font-family: "Cormorant Garamond", serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(1.7rem, 4.2vw, 3.3rem);
+    letter-spacing: 0.08em;
+    padding-left: 0.08em;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body style="font-family: &quot;Courier New&quot;">
+  <div id="stage">
+    <canvas id="kaleido"></canvas>
+    <img class="corner-flower cf-tl" src="assets/flower-tl.png" alt="" />
+    <img class="corner-flower cf-tr" src="assets/flower-tr.png" alt="" />
+    <img class="corner-flower cf-bl" src="assets/flower-bl.png" alt="" />
+    <img class="corner-flower cf-br" src="assets/flower-br.png" alt="" />
+    <div id="titles">
+      <div class="lang t-en">Tapestry of Wonders</div>
+      <div class="lang t-it">Giorni fioriti e splendenti</div>
+      <div class="lang t-zh">繁花似锦的日子</div>
+      <div class="lang t-ja">百花繚乱の日々</div>
+      <div class="lang t-hi">खिलते फूलों से सजे दिन</div>
+    </div>
+  </div>
+
+<script>
+(function () {
+  const canvas = document.getElementById("kaleido");
+  const ctx = canvas.getContext("2d");
+  const titles = document.getElementById("titles");
+
+  // offscreen "field" that holds one wedge worth of colourful blooms
+  const fieldCv = document.createElement("canvas");
+  const fctx = fieldCv.getContext("2d");
+
+  let W = 0, H = 0, dpr = 1, cx = 0, cy = 0, corner = 0;
+  // the field is a SQUARE big enough that every rotated wedge stays inside it
+  let rad = 0, FS = 0, fieldScale = 1;
+
+  const SLICES = 12;                  // even -> seamless mirror symmetry
+  const ANG = (Math.PI * 2) / SLICES;
+
+  // blooms laid out along the reference wedge, from the centre to the rim,
+  // so the mirrored kaleidoscope fills the whole screen with colour
+  const BLOOMS = [];
+  const RADII = [0, 0.16, 0.31, 0.46, 0.61, 0.76, 0.9, 1.03, 1.18];
+  RADII.forEach((frac, i) => {
+    BLOOMS.push({
+      frac,
+      hue: (i * 47 + 10) % 360,
+      angOff: (Math.random() * 2 - 1) * (ANG * 0.28),
+      angSpd: 0.05 + Math.random() * 0.12,
+      angAmp: ANG * (0.06 + Math.random() * 0.14),
+      spin: (Math.random() * 2 - 1) * 0.4,
+      phase: i * 0.7,
+      pulse: 0.18 + Math.random() * 0.12
+    });
+  });
+
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = Math.floor(W * dpr);
+    canvas.height = Math.floor(H * dpr);
+    canvas.style.width = W + "px";
+    canvas.style.height = H + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    cx = W / 2;
+    cy = H / 2;
+    corner = Math.hypot(W, H) / 2;
+
+    // square field with radial reach beyond the wedge clip radius (corner*1.25)
+    rad = corner * 1.32;
+    FS = 2 * rad;                       // css px side
+    fieldScale = Math.min(dpr, 2200 / FS);
+    fieldCv.width = fieldCv.height = Math.max(2, Math.floor(FS * fieldScale));
+  }
+  window.addEventListener("resize", resize);
+  resize();
+
+  function drawBloom(g, x, y, r, phaseOff, spinAng, ringPhase) {
+    g.save();
+    g.beginPath();
+    g.arc(x, y, r, 0, Math.PI * 2);
+    g.clip();
+
+    // conic wheel restricted to green -> cyan -> blue -> purple (no reds/oranges/yellows)
+    const HUE_MIN = 150, HUE_RANGE = 172;
+    const cg = g.createConicGradient(spinAng, x, y);
+    const STOPS = 12;
+    for (let k = 0; k <= STOPS; k++) {
+      const p = (k / STOPS + phaseOff) % 1;
+      const tri = 1 - Math.abs(2 * p - 1);     // 0->1->0, seamless loop within band
+      const h = HUE_MIN + HUE_RANGE * tri;
+      cg.addColorStop(k / STOPS, `oklch(0.6 0.28 ${h})`);
+    }
+    g.fillStyle = cg;
+    g.fillRect(x - r, y - r, 2 * r, 2 * r);
+
+    // concentric blossoming rings
+    const rg = g.createRadialGradient(x, y, 0, x, y, r);
+    const BANDS = 8;
+    for (let b = 0; b <= BANDS; b++) {
+      const f = b / BANDS;
+      const v = 0.5 + 0.5 * Math.sin((f * BANDS - ringPhase) * Math.PI * 2);
+      rg.addColorStop(f, `rgba(255,255,255,${0.16 * v})`);
+    }
+    g.globalCompositeOperation = "overlay";
+    g.fillStyle = rg;
+    g.fillRect(x - r, y - r, 2 * r, 2 * r);
+
+    // gentle edge shading for depth
+    g.globalCompositeOperation = "source-over";
+    const fall = g.createRadialGradient(x, y, r * 0.6, x, y, r);
+    fall.addColorStop(0, "rgba(0,0,0,0)");
+    fall.addColorStop(1, "rgba(8,6,30,0.28)");
+    g.fillStyle = fall;
+    g.fillRect(x - r, y - r, 2 * r, 2 * r);
+
+    g.restore();
+  }
+
+  function renderField(t, breathe) {
+    fctx.setTransform(fieldScale, 0, 0, fieldScale, 0, 0);
+    const fc = rad; // field centre (css px), since FS = 2*rad
+    // deep colour base so no gaps ever read as empty
+    const base = fctx.createRadialGradient(fc, fc, 0, fc, fc, rad);
+    base.addColorStop(0, "oklch(0.45 0.2 320)");
+    base.addColorStop(0.5, "oklch(0.4 0.2 265)");
+    base.addColorStop(1, "oklch(0.32 0.18 215)");
+    fctx.globalCompositeOperation = "source-over";
+    fctx.fillStyle = base;
+    fctx.fillRect(0, 0, FS, FS);
+
+    const minR = 0.1 * Math.min(W, H);
+    for (const b of BLOOMS) {
+      const bandR = b.frac * corner;
+      const ang = b.angOff + Math.sin(t * b.angSpd + b.phase) * b.angAmp;
+      // bloom ripples outward from the centre
+      const open = 0.82 + b.pulse * (0.5 - 0.5 * Math.cos(t * 0.6 - b.phase));
+      const r = Math.max(minR, bandR * ANG * 0.95) * open + minR * 0.4;
+      const x = fc + Math.cos(ang) * bandR;
+      const y = fc + Math.sin(ang) * bandR;
+      const phaseOff = ((b.hue / 360) + t * 0.02) % 1;
+      drawBloom(fctx, x, y, r, phaseOff, ang + t * b.spin, t * 0.4 + b.phase);
+    }
+  }
+
+  function clipWedge() {
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, corner * 1.25, -ANG / 2, ANG / 2);
+    ctx.closePath();
+    ctx.clip();
+  }
+
+  const start = performance.now();
+
+  function frame(now) {
+    const t = (now - start) / 1000;
+    const breathe = 0.95 + 0.07 * (0.5 - 0.5 * Math.cos(t * 0.36));
+    const rot = t * 0.045;
+
+    renderField(t, breathe);
+
+    ctx.globalCompositeOperation = "source-over";
+    ctx.clearRect(0, 0, W, H);
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.scale(breathe, breathe);
+    ctx.rotate(rot);
+    for (let i = 0; i < SLICES; i++) {
+      ctx.save();
+      ctx.rotate(i * ANG);
+      if (i % 2 === 1) ctx.scale(1, -1);   // mirror alternate wedges
+      clipWedge();
+      ctx.drawImage(fieldCv, -rad, -rad, FS, FS);
+      ctx.restore();
+    }
+    ctx.restore();
+
+    const textScale = 0.99 + 0.02 * (0.5 - 0.5 * Math.cos(t * 0.36));
+    titles.style.transform = `scale(${textScale})`;
+
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
