@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Travel Route Navigator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --primary: #2b6cb0;
+            --primary-hover: #2c5282;
+            --bg: #f7fafc;
+            --block-bg: #ffffff;
+            --border: #cbd5e0;
+            --text: #2d3748;
+            --accent: #ed8936;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 20px;
+        }
+
+        header {
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        h1 { margin: 0 0 5px 0; font-size: 1.5rem; color: var(--primary); }
+        .subtitle { margin: 0 0 15px 0; font-size: 0.85rem; color: #718096; }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button, .file-label {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+            display: inline-block;
+        }
+
+        button:hover, .file-label:hover { background-color: var(--primary-hover); }
+        .btn-danger { background-color: #e53e3e; }
+        .btn-danger:hover { background-color: #9b2c2c; }
+        input[type="file"] { display: none; }
+
+        #workspace {
+            position: relative;
+            width: 100%;
+            min-height: 75vh;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            overflow: auto;
+            padding: 40px;
+            box-sizing: border-box;
+        }
+
+        #canvas-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .route-block {
+            position: absolute;
+            background: var(--block-bg);
+            border: 2px solid var(--primary);
+            border-radius: 6px;
+            padding: 6px 10px;
+            width: 150px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            z-index: 2;
+            cursor: move;
+            user-select: none;
+            box-sizing: border-box;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .route-block.selected {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(237, 137, 54, 0.4);
+            z-index: 10;
+        }
+
+        .route-block.linking-source {
+            border-color: #48bb78;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(72, 187, 120, 0.7); }
+            70% { box-shadow: 0 0 0 6px rgba(72, 187, 120, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(72, 187, 120, 0); }
+        }
+
+        .route-block .display-view { display: block; }
+        .route-block .edit-view { display: none; }
+
+        .route-block.editing {
+            width: 220px;
+            z-index: 100;
+            padding: 12px;
+        }
+        .route-block.editing .display-view { display: none; }
+        .route-block.editing .edit-view { display: block; }
+
+        .disp-name { font-weight: bold; font-size: 0.95rem; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .disp-date { font-size: 0.8rem; color: #718096; }
+
+        .block-field {
+            width: 100%;
+            border: none;
+            border-bottom: 1px dashed var(--border);
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+            color: var(--text);
+            padding: 2px 0;
+            box-sizing: border-box;
+        }
+
+        .block-field:focus { outline: none; border-bottom-color: var(--primary); }
+        .location-name { font-weight: bold; font-size: 1rem; }
+
+        .block-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 0.75rem;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .block-actions span { color: var(--primary); cursor: pointer; font-weight: 600; }
+        .block-actions span:hover { text-decoration: underline; }
+        .block-actions .del-span { color: #e53e3e; }
+        .block-actions .link-span { color: #319795; }
+
+        .line-wrapper {
+            position: absolute;
+            z-index: 3;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .line-label {
+            background: white;
+            border: 1px solid var(--border);
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            outline: none;
+            white-space: nowrap;
+            cursor: text;
+        }
+
+        .line-del-btn {
+            background: #e53e3e;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            width: 16px;
+            height: 16px;
+            font-size: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            font-weight: bold;
+            opacity: 0.4;
+            transition: opacity 0.2s;
+        }
+        .line-wrapper:hover .line-del-btn {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Interactive Travel Route Navigator</h1>
+        <p class="subtitle">💡 Tips: Use <b>🔗 Link Mode</b> to connect blocks. Click the red <b>×</b> next to a line label to delete that route link.</p>
+        <div class="toolbar">
+            <button onclick="addBlock()">+ Add Start Block</button>
+            <button onclick="exportJSON()">Export JSON</button>
+            <label class="file-label">
+                Import JSON <input type="file" id="importFile" accept=".json" onchange="importJSON(event)">
+            </label>
+            <button onclick="downloadText()">Download Itinerary (TXT)</button>
+            <button onclick="downloadImage()">Download Image (PNG)</button>
+            <button onclick="downloadPDF()">Download PDF</button>
+            <button class="btn-danger" onclick="clearWorkspace()">Clear Canvas</button>
+        </div>
+    </header>
+
+    <div id="workspace">
+        <svg id="canvas-svg">
+            <defs>
+                <marker id="arrow" viewBox="0 0 10 10" refX="14" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#4a5568" />
+                </marker>
+                <marker id="arrow-alt" viewBox="0 0 10 10" refX="14" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                    <path d="M 0 0 L 10 5 L 0 10 z" fill="#a0aec0" />
+                </marker>
+            </defs>
+        </svg>
+    </div>
+
+    <script>
+        let blocks = [];
+        let connections = [];
+        let draggingBlock = null;
+        let dragOffset = { x: 0, y: 0 };
+        let activeEditId = null;
+        let linkingSourceId = null;
+
+        const START_X = 50;
+        const START_Y = 80;
+        const GAP_X = 220;
+        const GAP_Y = 160;
+
+        const workspace = document.getElementById('workspace');
+        const svg = document.getElementById('canvas-svg');
+
+        function loadSample() {
+            blocks = [
+                { id: 1, x: 0, y: 0, location: 'London, UK', datetime: '2026-07-01', returndate: '2026-07-15', hotel: 'The Ritz', isFinalReturn: true },
+                { id: 2, x: 0, y: 0, location: 'Paris, France', datetime: '2026-07-03', returndate: '', hotel: 'Hotel Lumiere' },
+                { id: 3, x: 0, y: 0, location: 'Lyon', datetime: '2026-07-06', returndate: '', hotel: 'Grand Central' },
+                { id: 4, x: 0, y: 0, location: 'Nice', datetime: '2026-07-09', returndate: '', hotel: 'Sea View Inn' },
+                { id: 5, x: 0, y: 0, location: 'Barcelona', datetime: '2026-07-12', returndate: '', hotel: 'Casa Sol' }
+            ];
+            
+            connections = [
+                { from: 1, to: 2, type: 'main', transport: 'Eurostar' },
+                { from: 2, to: 3, type: 'main', transport: 'TGV Train' },
+                { from: 3, to: 4, type: 'main', transport: 'Regional Rail' },
+                { from: 4, to: 5, type: 'main', transport: 'Flight' },
+                { from: 5, to: 1, type: 'main', transport: 'Return Flight' }
+            ];
+
+            calculateSnakePositions();
+            render();
+        }
+
+        function calculateSnakePositions() {
+            blocks.forEach((block, index) => {
+                let row = Math.floor(index / 4);
+                let col = index % 4;
+                if (row % 2 === 1) { col = 3 - col; }
+                block.x = START_X + (col * GAP_X);
+                block.y = START_Y + (row * GAP_Y);
+            });
+        }
+
+        function render() {
+            document.querySelectorAll('.route-block').forEach(el => el.remove());
+            document.querySelectorAll('.line-wrapper').forEach(el => el.remove());
+            
+            const defs = svg.querySelector('defs');
+            svg.innerHTML = '';
+            svg.appendChild(defs);
+
+            // Render Connections
+            connections.forEach((conn, index) => {
+                const fromBlock = blocks.find(b => b.id === conn.from);
+                const toBlock = blocks.find(b => b.id === conn.to);
+                if (!fromBlock || !toBlock) return;
+
+                const fromWidth = (activeEditId === fromBlock.id) ? 220 : 150;
+                const fromHeight = (activeEditId === fromBlock.id) ? 170 : 55;
+                const toWidth = (activeEditId === toBlock.id) ? 220 : 150;
+                const toHeight = (activeEditId === toBlock.id) ? 170 : 55;
+
+                const x1 = fromBlock.x + (fromWidth / 2);
+                const y1 = fromBlock.y + (fromHeight / 2);
+                const x2 = toBlock.x + (toWidth / 2);
+                const y2 = toBlock.y + (toHeight / 2);
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', x1);
+                line.setAttribute('y1', y1);
+                line.setAttribute('x2', x2);
+                line.setAttribute('y2', y2);
+                line.setAttribute('stroke', conn.type === 'main' ? '#4a5568' : '#a0aec0');
+                line.setAttribute('stroke-width', '2');
+                if (conn.type === 'alt') {
+                    line.setAttribute('stroke-dasharray', '5,5');
+                    line.setAttribute('marker-end', 'url(#arrow-alt)');
+                } else {
+                    line.setAttribute('marker-end', 'url(#arrow)');
+                }
+                svg.appendChild(line);
+
+                // Label Wrapper containing the editable field and a fast deletion trigger
+                const wrapper = document.createElement('div');
+                wrapper.className = 'line-wrapper';
+                wrapper.style.left = `${(x1 + x2) / 2}px`;
+                wrapper.style.top = `${(y1 + y2) / 2}px`;
+
+                const label = document.createElement('div');
+                label.className = 'line-label';
+                label.contentEditable = true;
+                label.innerText = conn.transport || 'Transit';
+                label.addEventListener('blur', (e) => { conn.transport = e.target.innerText; });
+
+                const delBtn = document.createElement('button');
+                delBtn.className = 'line-del-btn';
+                delBtn.innerHTML = '×';
+                delBtn.title = "Delete route link";
+                delBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteLink(index);
+                });
+
+                wrapper.appendChild(label);
+                wrapper.appendChild(delBtn);
+                workspace.appendChild(wrapper);
+            });
+
+            // Render Blocks
+            blocks.forEach(block => {
+                const el = document.createElement('div');
+                el.className = `route-block ${activeEditId === block.id ? 'editing selected' : ''} ${linkingSourceId === block.id ? 'linking-source' : ''}`;
+                el.style.left = `${block.x}px`;
+                el.style.top = `${block.y}px`;
+
+                el.innerHTML = `
+                    <div class="display-view">
+                        <div class="disp-name">${block.location || 'Stop'}</div>
+                        <div class="disp-date">${block.datetime || 'Set Date'}</div>
+                        ${block.isFinalReturn && block.returndate ? `<div class="disp-date" style="color:#2b6cb0">↩ ${block.returndate}</div>` : ''}
+                    </div>
+                    <div class="edit-view">
+                        <input class="block-field location-name" value="${block.location}" placeholder="Location Name" onchange="updateBlock(${block.id}, 'location', this.value)">
+                        <input class="block-field" value="${block.datetime}" placeholder="Arrival Date" onchange="updateBlock(${block.id}, 'datetime', this.value)">
+                        
+                        <label style="font-size:0.7rem; display:block; margin: 2px 0;">
+                            <input type="checkbox" ${block.isFinalReturn ? 'checked' : ''} onchange="updateBlock(${block.id}, 'isFinalReturn', this.checked); render();"> Round-trip / Origin Node
+                        </label>
+                        ${block.isFinalReturn ? `<input class="block-field" value="${block.returndate || ''}" placeholder="Return Date" onchange="updateBlock(${block.id}, 'returndate', this.value)">` : ''}
+                        
+                        <input class="block-field" value="${block.hotel || ''}" placeholder="Hotel Name" onchange="updateBlock(${block.id}, 'hotel', this.value)">
+                        
+                        <div class="block-actions">
+                            <span onclick="connectNext(${block.id}, 'main'); event.stopPropagation();">+ Next</span>
+                            <span onclick="connectNext(${block.id}, 'alt'); event.stopPropagation();">+ Alt</span>
+                            <span class="link-span" onclick="startManualLink(${block.id}); event.stopPropagation();">🔗 Link Mode</span>
+                            <span class="del-span" onclick="deleteBlock(${block.id}); event.stopPropagation();">Delete</span>
+                        </div>
+                    </div>
+                `;
+
+                el.addEventListener('click', (e) => {
+                    if (linkingSourceId !== null) {
+                        e.stopPropagation();
+                        completeManualLink(block.id);
+                        return;
+                    }
+                    if (activeEditId !== block.id) {
+                        activeEditId = block.id;
+                        render();
+                    }
+                });
+
+                el.addEventListener('mousedown', (e) => {
+                    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SPAN' || e.target.classList.contains('line-del-btn')) return;
+                    draggingBlock = block;
+                    dragOffset.x = e.clientX - block.x;
+                    dragOffset.y = e.clientY - block.y;
+                });
+
+                workspace.appendChild(el);
+            });
+        }
+
+        workspace.addEventListener('click', (e) => {
+            if (e.target === workspace || e.target === svg) {
+                activeEditId = null;
+                linkingSourceId = null;
+                render();
+            }
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!draggingBlock) return;
+            draggingBlock.x = e.clientX - dragOffset.x;
+            draggingBlock.y = e.clientY - dragOffset.y;
+            render();
+        });
+
+        window.addEventListener('mouseup', () => { draggingBlock = null; });
+
+        function addBlock() {
+            const id = Date.now();
+            blocks.push({ id, x: 0, y: 0, location: 'New Location', datetime: '', returndate: '', hotel: '', isFinalReturn: false });
+            calculateSnakePositions();
+            activeEditId = id;
+            render();
+        }
+
+        function connectNext(fromId, type) {
+            const id = Date.now();
+            blocks.push({ id, x: 0, y: 0, location: 'Next Stop', datetime: '', returndate: '', hotel: '', isFinalReturn: false });
+            connections.push({ from: fromId, to: id, type: type, transport: 'Transit' });
+            
+            calculateSnakePositions();
+            activeEditId = id; 
+            render();
+        }
+
+        function startManualLink(fromId) {
+            linkingSourceId = fromId;
+            alert("Link Mode Active! Click on any destination block to draw your connection line.");
+            render();
+        }
+
+        function completeManualLink(toId) {
+            if (linkingSourceId === toId) {
+                alert("A block cannot link directly to itself.");
+                linkingSourceId = null;
+                render();
+                return;
+            }
+            if (connections.some(c => c.from === linkingSourceId && c.to === toId)) {
+                alert("This route link already exists.");
+                linkingSourceId = null;
+                render();
+                return;
+            }
+
+            const routeType = confirm("Press [OK] for Main Route (Solid line)\nPress [Cancel] for Alternative Route (Dotted line)") ? 'main' : 'alt';
+            connections.push({
+                from: linkingSourceId,
+                to: toId,
+                type: routeType,
+                transport: routeType === 'main' ? 'Main Connection' : 'Alternative Path'
+            });
+
+            linkingSourceId = null;
+            render();
+        }
+
+        // Action function to cleanly delete route connections independently
+        function deleteLink(index) {
+            if(confirm("Are you sure you want to delete this specific route link?")) {
+                connections.splice(index, 1);
+                render();
+            }
+        }
+
+        function updateBlock(id, field, value) {
+            const block = blocks.find(b => b.id === id);
+            if (block) {
+                block[field] = value;
+                if (field === 'location' || field === 'datetime') {
+                    const viewEl = document.querySelector(`.route-block.editing`);
+                    if (!viewEl) return;
+                    const dispName = viewEl.querySelector('.disp-name');
+                    const dispDates = viewEl.querySelectorAll('.disp-date');
+                    if (dispName) dispName.innerText = block.location;
+                    if (dispDates[0]) dispDates[0].innerText = block.datetime || 'Set Date';
+                }
+            }
+        }
+
+        function deleteBlock(id) {
+            blocks = blocks.filter(b => b.id !== id);
+            connections = connections.filter(c => c.from !== id && c.to !== id);
+            if (activeEditId === id) activeEditId = null;
+            if (linkingSourceId === id) linkingSourceId = null;
+            calculateSnakePositions();
+            render();
+        }
+
+        function clearWorkspace() {
+            if (confirm("Clear layout completely?")) {
+                blocks = [];
+                connections = [];
+                activeEditId = null;
+                linkingSourceId = null;
+                render();
+            }
+        }
+
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ blocks, connections }));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "travel_route.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed.blocks && parsed.connections) {
+                        blocks = parsed.blocks;
+                        connections = parsed.connections;
+                        render();
+                    }
+                } catch (err) { alert("Error parsing file."); }
+            };
+            reader.readAsText(file);
+        }
+
+        function downloadText() {
+            let textOutput = "YOUR TRAVEL ITINERARY\n======================\n\n";
+            blocks.forEach((b, i) => {
+                textOutput += `${i+1}. Location: ${b.location || 'N/A'}\n`;
+                textOutput += `   Arrive Date: ${b.datetime || 'N/A'}\n`;
+                if(b.isFinalReturn && b.returndate) {
+                    textOutput += `   Return Date: ${b.returndate}\n`;
+                }
+                if(b.hotel) textOutput += `   Accommodation: ${b.hotel}\n`;
+                
+                const outbox = connections.filter(c => c.from === b.id);
+                if (outbox.length > 0) {
+                    textOutput += `   Connections:\n`;
+                    outbox.forEach(c => {
+                        const target = blocks.find(bl => bl.id === c.to);
+                        textOutput += `     -> [${c.type.toUpperCase()}] via "${c.transport}" to ${target ? target.location : 'Origin/End'}\n`;
+                    });
+                }
+                textOutput += "\n";
+            });
+
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(textOutput));
+            element.setAttribute('download', 'itinerary.txt');
+            document.body.appendChild(element);
+            element.click();
+            element.remove();
+        }
+
+        function downloadImage() {
+            activeEditId = null;
+            render();
+            setTimeout(() => {
+                const ws = document.getElementById('workspace');
+                html2canvas(ws, { useCORS: true, allowTaint: true }).then(canvas => {
+                    const link = document.createElement('a');
+                    link.download = 'travel_route.png';
+                    link.href = canvas.toDataURL();
+                    link.click();
+                });
+            }, 100);
+        }
+
+        function downloadPDF() {
+            activeEditId = null;
+            render();
+            setTimeout(() => {
+                const ws = document.getElementById('workspace');
+                html2canvas(ws, { scale: 2, useCORS: true }).then(canvas => {
+                    const imgData = canvas.toDataURL('image/png');
+                    const { jspdf } = window.jspdf;
+                    const pdf = new jspdf('l', 'mm', 'a4');
+                    const imgWidth = 297; 
+                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+                    pdf.save('travel_route.pdf');
+                });
+            }, 100);
+        }
+
+        loadSample();
+    </script>
+</body>
+</html>
