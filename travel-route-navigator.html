@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Travel Route Navigator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0f172a;color:#e2e8f0;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── Toolbar ── */
+#toolbar{background:#1e293b;border-bottom:1px solid #334155;padding:8px 14px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;z-index:100;flex-shrink:0}
+#toolbar h1{font-size:15px;color:#38bdf8;margin-right:4px;white-space:nowrap}
+.sep{width:1px;background:#334155;height:26px;margin:0 2px}
+.btn{padding:5px 12px;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;transition:filter .15s;white-space:nowrap}
+.btn:hover{filter:brightness(1.15)}
+.bp{background:#0ea5e9;color:#fff}
+.bs{background:#334155;color:#e2e8f0}
+.bg{background:#10b981;color:#fff}
+.bw{background:#f59e0b;color:#fff}
+.br{background:#ef4444;color:#fff}
+.zoom-lbl{font-size:11px;color:#94a3b8;min-width:44px;text-align:center}
+
+/* ── Canvas ── */
+#vp{flex:1;position:relative;overflow:hidden;background:#0f172a;background-image:radial-gradient(circle,#1e293b 1px,transparent 0);background-size:32px 32px;cursor:grab}
+#vp.panning{cursor:grabbing}
+#vp.connecting{cursor:crosshair}
+#world{position:absolute;width:6000px;height:5000px;transform-origin:0 0}
+#svg-lines{position:absolute;top:0;left:0;width:6000px;height:5000px;overflow:visible;pointer-events:none}
+
+/* ── Nodes ── */
+.node{position:absolute;width:210px;background:#1e293b;border:2px solid #334155;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,.5);transition:border-color .2s,box-shadow .2s;z-index:10}
+.node:hover{border-color:#38bdf8;box-shadow:0 4px 28px rgba(56,189,248,.2)}
+.node.selected{border-color:#38bdf8;box-shadow:0 0 0 3px rgba(56,189,248,.25)}
+.node-head{background:#0c4a6e;padding:8px 10px;border-radius:10px 10px 0 0;display:flex;align-items:center;gap:6px;cursor:move}
+.node-loc{font-size:13px;font-weight:700;outline:none;background:transparent;color:#e0f2fe;border:none;width:100%;cursor:text;white-space:pre-wrap;word-break:break-word}
+.node-loc:focus{background:rgba(255,255,255,.08);border-radius:4px;padding:1px 4px}
+.node-body{padding:9px 10px}
+.nf{display:flex;align-items:center;gap:5px;margin-bottom:5px}
+.nf-icon{font-size:12px;flex-shrink:0;width:16px;text-align:center}
+.nf input{background:transparent;border:1px solid transparent;color:#cbd5e1;font-size:11.5px;padding:2px 5px;border-radius:4px;width:100%;outline:none;font-family:inherit}
+.nf input:hover{border-color:#475569}
+.nf input:focus{border-color:#38bdf8;background:#0f172a;color:#e2e8f0}
+.nf input::placeholder{color:#475569}
+.node-acts{display:flex;gap:4px;padding:6px 8px;border-top:1px solid #334155}
+.na{flex:1;padding:4px 4px;font-size:10px;border:none;border-radius:4px;cursor:pointer;font-weight:600;transition:filter .15s}
+.na:hover{filter:brightness(1.2)}
+.na-conn{background:#0ea5e9;color:#fff}
+.na-alt{background:#d97706;color:#fff}
+.na-del{background:#dc2626;color:#fff}
+.node-port{width:14px;height:14px;background:#38bdf8;border-radius:50%;position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);cursor:pointer;pointer-events:all;border:2px solid #0f172a;z-index:20;transition:transform .15s,background .15s}
+.node-port:hover{transform:translateX(-50%) scale(1.5);background:#7dd3fc}
+
+/* ── Edge labels ── */
+.elabel{position:absolute;background:#1e3a52;border:1px solid #334155;padding:3px 9px;border-radius:10px;font-size:11px;color:#93c5fd;cursor:text;outline:none;min-width:50px;text-align:center;z-index:30;pointer-events:all;white-space:nowrap}
+.elabel:focus{border-color:#38bdf8;color:#e2e8f0;background:#0f172a}
+.elabel.alt-lbl{border-color:#b45309;color:#fcd34d;background:#1c1400}
+.elabel:focus.alt-lbl{background:#0f172a}
+
+/* ── Preview line ── */
+#preview-line{pointer-events:none;stroke:#38bdf8;stroke-width:2;stroke-dasharray:7 4;fill:none;opacity:.7}
+
+/* ── Context menu ── */
+#ctx{position:fixed;background:#1e293b;border:1px solid #334155;border-radius:8px;padding:5px 0;box-shadow:0 12px 40px rgba(0,0,0,.6);z-index:1000;display:none;min-width:190px}
+.ci{padding:8px 16px;cursor:pointer;font-size:12.5px;color:#e2e8f0;display:flex;align-items:center;gap:8px}
+.ci:hover{background:#334155}
+.ci.danger{color:#f87171}
+.csep{height:1px;background:#334155;margin:4px 0}
+
+/* ── Modal ── */
+.modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:500;display:none;align-items:center;justify-content:center}
+.modal-wrap.open{display:flex}
+.modal{background:#1e293b;border:1px solid #334155;border-radius:12px;padding:22px;width:420px;max-height:80vh;overflow-y:auto}
+.modal h2{margin-bottom:14px;color:#38bdf8;font-size:15px}
+.modal textarea{width:100%;height:210px;background:#0f172a;border:1px solid #334155;color:#e2e8f0;border-radius:6px;padding:10px;font-family:monospace;font-size:11.5px;resize:vertical;outline:none}
+.modal textarea:focus{border-color:#38bdf8}
+.modal-acts{display:flex;gap:8px;margin-top:12px}
+
+/* ── Toast ── */
+#toast{position:fixed;bottom:22px;right:22px;background:#059669;color:#fff;padding:9px 18px;border-radius:8px;font-size:12.5px;z-index:2000;opacity:0;transition:opacity .3s;pointer-events:none}
+#toast.show{opacity:1}
+
+/* ── Status bar ── */
+#statusbar{background:#1e293b;border-top:1px solid #334155;padding:4px 14px;font-size:10.5px;color:#64748b;display:flex;gap:16px;flex-shrink:0}
+
+/* ── Help overlay ── */
+#help-tip{position:absolute;bottom:12px;left:12px;background:rgba(30,41,59,.9);border:1px solid #334155;border-radius:8px;padding:8px 12px;font-size:11px;color:#64748b;pointer-events:none;z-index:5;line-height:1.6}
+</style>
+</head>
+<body>
+
+<div id="toolbar">
+  <h1>✈ Travel Route Navigator</h1>
+  <div class="sep"></div>
+  <button class="btn bp" onclick="addNodeCentered()">＋ Add Stop</button>
+  <div class="sep"></div>
+  <button class="btn bs" onclick="exportJSON()">↑ Export JSON</button>
+  <button class="btn bs" onclick="openImport()">↓ Import JSON</button>
+  <div class="sep"></div>
+  <button class="btn bg" onclick="downloadImage()">🖼 Image</button>
+  <button class="btn bg" onclick="downloadPDF()">📄 PDF</button>
+  <button class="btn bw" onclick="downloadItinerary()">📝 Itinerary</button>
+  <div class="sep"></div>
+  <button class="btn bs" onclick="zoomIn()">＋</button>
+  <span class="zoom-lbl" id="zoom-lbl">100%</span>
+  <button class="btn bs" onclick="zoomOut()">－</button>
+  <button class="btn bs" onclick="resetView()" title="Reset view">⌖</button>
+  <button class="btn bs" onclick="fitAll()" title="Fit to view">⊞</button>
+  <div class="sep"></div>
+  <button class="btn br" onclick="clearAll()">✕ Clear</button>
+</div>
+
+<div id="vp">
+  <div id="world">
+    <svg id="svg-lines" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arr" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0,10 3.5,0 7" fill="#38bdf8"/>
+        </marker>
+        <marker id="arr-alt" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0,10 3.5,0 7" fill="#f59e0b"/>
+        </marker>
+      </defs>
+      <path id="preview-line" d=""/>
+    </svg>
+  </div>
+  <div id="help-tip">
+    Drag to pan &nbsp;·&nbsp; Scroll to zoom &nbsp;·&nbsp; Drag block header to move &nbsp;·&nbsp; Right-click block for options
+  </div>
+</div>
+
+<div id="statusbar">
+  <span id="st-nodes">0 stops</span>
+  <span id="st-edges">0 connections</span>
+  <span id="st-zoom">Zoom 100%</span>
+</div>
+
+<!-- Context menu -->
+<div id="ctx">
+  <div class="ci" onclick="ctxConn()">🔗 Connect to…</div>
+  <div class="ci" onclick="ctxAlt()">⤴ Add alternative route</div>
+  <div class="csep"></div>
+  <div class="ci danger" onclick="ctxDel()">🗑 Delete stop</div>
+</div>
+
+<!-- Import modal -->
+<div class="modal-wrap" id="import-wrap" onclick="maybeCloseImport(event)">
+  <div class="modal">
+    <h2>Import Route (JSON)</h2>
+    <textarea id="import-ta" placeholder="Paste exported JSON here…"></textarea>
+    <div class="modal-acts">
+      <button class="btn bp" onclick="doImport()">Import</button>
+      <button class="btn bs" onclick="closeImport()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ===========================
+   STATE
+=========================== */
+const S = {
+  nodes: [],   // {id,x,y,location,date,time,hotel,notes}
+  edges: [],   // {id,from,to,label,type:'main'|'alt'}
+  nid: 1, eid: 1,
+  zoom: 1, px: 0, py: 0,
+  drag: null,  // {id, ox, oy}
+  pan: null,   // {sx, sy}
+  conn: null,  // {fromId, type}
+  ctxId: null,
+};
+
+const vp    = document.getElementById('vp');
+const world = document.getElementById('world');
+const svg   = document.getElementById('svg-lines');
+const prv   = document.getElementById('preview-line');
+
+/* ===========================
+   TRANSFORM
+=========================== */
+function applyT() {
+  world.style.transform = `translate(${S.px}px,${S.py}px) scale(${S.zoom})`;
+  const pct = Math.round(S.zoom * 100) + '%';
+  document.getElementById('zoom-lbl').textContent = pct;
+  document.getElementById('st-zoom').textContent  = 'Zoom ' + pct;
+}
+
+function vpToWorld(cx, cy) {
+  const r = vp.getBoundingClientRect();
+  return { x:(cx-r.left-S.px)/S.zoom, y:(cy-r.top-S.py)/S.zoom };
+}
+
+/* ===========================
+   NODES
+=========================== */
+function mkId(pre) { return pre + (S.nid++); }
+
+function addNodeAt(x, y, d={}) {
+  const n = {
+    id: 'n'+(S.nid++),
+    x, y,
+    location: d.location||'New Location',
+    date:     d.date||'',
+    time:     d.time||'',
+    hotel:    d.hotel||'',
+    notes:    d.notes||'',
+  };
+  S.nodes.push(n);
+  _renderNode(n);
+  updateStatus();
+  return n;
+}
+
+function addNodeCentered(d={}) {
+  const off = S.nodes.length * 22;
+  const x = (vp.clientWidth/2  - S.px)/S.zoom - 105 + off;
+  const y = (vp.clientHeight/2 - S.py)/S.zoom - 80  + off;
+  return addNodeAt(x, y, d);
+}
+
+function _renderNode(n) {
+  const el = document.createElement('div');
+  el.className = 'node';
+  el.id = 'nd-'+n.id;
+  el.style.left = n.x+'px';
+  el.style.top  = n.y+'px';
+  el.innerHTML = `
+    <div class="node-head">
+      <span>📍</span>
+      <div class="node-loc" contenteditable="true" data-f="location">${esc(n.location)}</div>
+    </div>
+    <div class="node-body">
+      <div class="nf"><span class="nf-icon">📅</span><input type="text" placeholder="Date (e.g. Jun 1)" value="${esc(n.date)}" data-f="date"></div>
+      <div class="nf"><span class="nf-icon">🕐</span><input type="text" placeholder="Time (e.g. 14:30)" value="${esc(n.time)}" data-f="time"></div>
+      <div class="nf"><span class="nf-icon">🏨</span><input type="text" placeholder="Hotel / Accommodation" value="${esc(n.hotel)}" data-f="hotel"></div>
+      <div class="nf"><span class="nf-icon">📝</span><input type="text" placeholder="Notes" value="${esc(n.notes)}" data-f="notes"></div>
+    </div>
+    <div class="node-acts">
+      <button class="na na-conn" data-nid="${n.id}" data-t="main">→ Connect</button>
+      <button class="na na-alt"  data-nid="${n.id}" data-t="alt">⤴ Alt Route</button>
+      <button class="na na-del"  data-nid="${n.id}">✕</button>
+    </div>
+    <div class="node-port" id="pt-${n.id}"></div>
+  `;
+
+  /* Drag via header */
+  el.querySelector('.node-head').addEventListener('mousedown', e => {
+    if (e.target.classList.contains('node-loc')) return;
+    startDrag(n.id, e);
+  });
+  /* Drag via body background */
+  el.addEventListener('mousedown', e => {
+    if (e.target.tagName==='INPUT'||e.target.contentEditable==='true'||
+        e.target.tagName==='BUTTON'||e.target.classList.contains('node-port')) return;
+    startDrag(n.id, e);
+  });
+
+  /* Context menu */
+  el.addEventListener('contextmenu', e => { e.preventDefault(); showCtx(n.id, e.clientX, e.clientY); });
+
+  /* Field updates */
+  el.querySelector('[data-f="location"]').addEventListener('input', e => { n.location = e.target.textContent.trim(); });
+  el.querySelectorAll('input[data-f]').forEach(inp => inp.addEventListener('input', e => { n[e.target.dataset.f] = e.target.value; }));
+
+  /* Button events */
+  el.querySelector('.na-conn').addEventListener('click', e => { e.stopPropagation(); startConn(n.id,'main'); });
+  el.querySelector('.na-alt' ).addEventListener('click', e => { e.stopPropagation(); startConn(n.id,'alt'); });
+  el.querySelector('.na-del' ).addEventListener('click', e => { e.stopPropagation(); deleteNode(n.id); });
+
+  /* Port click – finish connection */
+  el.querySelector('.node-port').addEventListener('click', e => { e.stopPropagation(); tryFinishConn(n.id); });
+
+  world.appendChild(el);
+  return el;
+}
+
+function deleteNode(id) {
+  S.nodes = S.nodes.filter(n => n.id!==id);
+  S.edges = S.edges.filter(e => e.from!==id && e.to!==id);
+  document.getElementById('nd-'+id)?.remove();
+  renderEdges();
+  updateStatus();
+}
+
+function nodeEl(id) { return document.getElementById('nd-'+id); }
+
+function nodePt(n, which='bottom') {
+  const el = nodeEl(n.id);
+  const h  = el ? el.offsetHeight : 148;
+  if (which==='top')    return {x: n.x+105, y: n.y};
+  if (which==='bottom') return {x: n.x+105, y: n.y+h};
+  return {x: n.x+105, y: n.y+h/2};
+}
+
+/* ===========================
+   DRAGGING
+=========================== */
+function startDrag(id, e) {
+  e.stopPropagation();
+  const n = S.nodes.find(n=>n.id===id);
+  if(!n) return;
+  S.drag = { id, ox:(e.clientX-S.px)/S.zoom - n.x, oy:(e.clientY-S.py)/S.zoom - n.y };
+  nodeEl(id).style.zIndex = 100;
+}
+
+/* ===========================
+   CONNECTIONS
+=========================== */
+function startConn(fromId, type) {
+  S.conn = { fromId, type };
+  vp.classList.add('connecting');
+  toast(type==='alt' ? 'Click another stop to add alternative route…' : 'Click another stop to connect…');
+}
+
+function tryFinishConn(toId) {
+  if (!S.conn || S.conn.fromId === toId) { cancelConn(); return; }
+  addEdge(S.conn.fromId, toId, S.conn.type, '');
+  cancelConn();
+}
+
+function cancelConn() {
+  S.conn = null;
+  vp.classList.remove('connecting');
+  prv.setAttribute('d','');
+}
+
+function addEdge(from, to, type='main', label='') {
+  if (S.edges.find(e=>e.from===from&&e.to===to)) { toast('Already connected'); return; }
+  const e = { id:'e'+(S.eid++), from, to, label, type };
+  S.edges.push(e);
+  renderEdges();
+  updateStatus();
+  return e;
+}
+
+function deleteEdge(id) {
+  S.edges = S.edges.filter(e=>e.id!==id);
+  renderEdges();
+  updateStatus();
+}
+
+/* ===========================
+   RENDER EDGES
+=========================== */
+function renderEdges() {
+  /* Remove old paths and labels */
+  svg.querySelectorAll('.ep,.edel').forEach(el=>el.remove());
+  world.querySelectorAll('.elabel,.edelbtn').forEach(el=>el.remove());
+
+  S.edges.forEach(edge => {
+    const fn = S.nodes.find(n=>n.id===edge.from);
+    const tn = S.nodes.find(n=>n.id===edge.to);
+    if(!fn||!tn) return;
+    const isAlt = edge.type==='alt';
+    const from  = nodePt(fn,'bottom');
+    const to    = nodePt(tn,'top');
+
+    const dx = to.x - from.x;
+    const dy = to.y - from.y;
+    const cp1x = from.x + dx*0.05;
+    const cp1y = from.y + Math.max(40, Math.abs(dy)*0.5);
+    const cp2x = to.x   - dx*0.05;
+    const cp2y = to.y   - Math.max(40, Math.abs(dy)*0.5);
+    const d    = `M${from.x} ${from.y} C${cp1x} ${cp1y},${cp2x} ${cp2y},${to.x} ${to.y}`;
+
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    path.setAttribute('class','ep');
+    path.setAttribute('d', d);
+    path.setAttribute('fill','none');
+    path.setAttribute('stroke', isAlt ? '#f59e0b' : '#38bdf8');
+    path.setAttribute('stroke-width', isAlt ? '2' : '2.5');
+    if(isAlt) path.setAttribute('stroke-dasharray','9 5');
+    path.setAttribute('marker-end', `url(#arr${isAlt?'-alt':''})`);
+    path.style.pointerEvents = 'none';
+    svg.appendChild(path);
+
+    /* Midpoint label */
+    const mx = (from.x+to.x)/2;
+    const my = (from.y+to.y)/2;
+
+    const lbl = document.createElement('div');
+    lbl.className = 'elabel' + (isAlt?' alt-lbl':'');
+    lbl.id        = 'lbl-'+edge.id;
+    lbl.contentEditable = 'true';
+    lbl.textContent = edge.label || (isAlt ? 'Alternative' : 'via…');
+    lbl.style.left = (mx - 40)+'px';
+    lbl.style.top  = (my - 13)+'px';
+    lbl.addEventListener('input', () => { edge.label = lbl.textContent.trim(); });
+    lbl.addEventListener('mousedown', e => e.stopPropagation());
+    world.appendChild(lbl);
+
+    /* Small delete button on edge */
+    const delbtn = document.createElement('button');
+    delbtn.className = 'edelbtn';
+    delbtn.textContent = '×';
+    delbtn.title = 'Delete connection';
+    delbtn.style.cssText = `position:absolute;left:${mx+48}px;top:${my-11}px;width:20px;height:20px;background:#dc2626;color:#fff;border:none;border-radius:50%;font-size:12px;cursor:pointer;z-index:35;display:none;align-items:center;justify-content:center;font-weight:700;line-height:1`;
+    delbtn.addEventListener('click', e => { e.stopPropagation(); deleteEdge(edge.id); });
+    world.appendChild(delbtn);
+
+    lbl.addEventListener('mouseenter', () => delbtn.style.display='flex');
+    lbl.addEventListener('mouseleave', () => delbtn.style.display='none');
+    delbtn.addEventListener('mouseenter', () => delbtn.style.display='flex');
+    delbtn.addEventListener('mouseleave', () => delbtn.style.display='none');
+  });
+}
+
+/* ===========================
+   PAN & ZOOM
+=========================== */
+vp.addEventListener('wheel', e => {
+  e.preventDefault();
+  const f   = e.deltaY < 0 ? 1.1 : 0.9;
+  const r   = vp.getBoundingClientRect();
+  const mx  = e.clientX - r.left;
+  const my  = e.clientY - r.top;
+  S.panX_before = S.px; S.panY_before = S.py;
+  S.px = mx - (mx - S.px)*f;
+  S.py = my - (my - S.py)*f;
+  S.zoom = Math.max(0.15, Math.min(3, S.zoom*f));
+  applyT();
+}, {passive:false});
+
+vp.addEventListener('mousedown', e => {
+  const onBg = e.target===vp||e.target===world||e.target===svg;
+  if (onBg && S.conn) { cancelConn(); return; }
+  if (onBg) {
+    S.pan = { sx: e.clientX - S.px, sy: e.clientY - S.py };
+    vp.classList.add('panning');
+  }
+});
+
+document.addEventListener('mousemove', e => {
+  if (S.drag) {
+    const n = S.nodes.find(n=>n.id===S.drag.id);
+    if(n) {
+      n.x = (e.clientX-S.px)/S.zoom - S.drag.ox;
+      n.y = (e.clientY-S.py)/S.zoom - S.drag.oy;
+      const el = nodeEl(n.id);
+      if(el){ el.style.left=n.x+'px'; el.style.top=n.y+'px'; }
+      renderEdges();
+    }
+  } else if (S.pan) {
+    S.px = e.clientX - S.pan.sx;
+    S.py = e.clientY - S.pan.sy;
+    applyT();
+  } else if (S.conn) {
+    const fn = S.nodes.find(n=>n.id===S.conn.fromId);
+    if(fn) {
+      const from = nodePt(fn,'bottom');
+      const pt   = vpToWorld(e.clientX, e.clientY);
+      prv.setAttribute('d',`M${from.x} ${from.y} L${pt.x} ${pt.y}`);
+      prv.setAttribute('stroke', S.conn.type==='alt'?'#f59e0b':'#38bdf8');
+    }
+  }
+});
+
+document.addEventListener('mouseup', e => {
+  if(S.drag){ nodeEl(S.drag.id)?.style.removeProperty('z-index'); S.drag=null; }
+  if(S.pan){ S.pan=null; vp.classList.remove('panning'); }
+});
+
+/* Click on canvas while connecting → cancel */
+vp.addEventListener('click', e => {
+  if(!S.conn) return;
+  const nd = e.target.closest('.node');
+  if(nd) { tryFinishConn(nd.id.replace('nd-','')); }
+  else { cancelConn(); }
+});
+
+/* Click elsewhere → hide context menu */
+document.addEventListener('click', e => {
+  if(!document.getElementById('ctx').contains(e.target)) hideCtx();
+});
+
+/* ===========================
+   ZOOM CONTROLS
+=========================== */
+function zoomIn()   { S.zoom=Math.min(3,S.zoom*1.2); applyT(); }
+function zoomOut()  { S.zoom=Math.max(0.15,S.zoom/1.2); applyT(); }
+function resetView(){ S.zoom=1;S.px=0;S.py=0; applyT(); }
+function fitAll() {
+  if(!S.nodes.length) return;
+  const xs=S.nodes.map(n=>n.x), ys=S.nodes.map(n=>n.y);
+  const x1=Math.min(...xs)-40, y1=Math.min(...ys)-40;
+  const x2=Math.max(...xs)+260, y2=Math.max(...ys)+200;
+  const w=x2-x1, h=y2-y1;
+  S.zoom = Math.min(vp.clientWidth/w, vp.clientHeight/h, 1.5);
+  S.px   = (vp.clientWidth  - w*S.zoom)/2 - x1*S.zoom;
+  S.py   = (vp.clientHeight - h*S.zoom)/2 - y1*S.zoom;
+  applyT();
+}
+
+/* ===========================
+   CONTEXT MENU
+=========================== */
+function showCtx(id,x,y) {
+  S.ctxId=id;
+  const m=document.getElementById('ctx');
+  m.style.left=x+'px'; m.style.top=y+'px'; m.style.display='block';
+}
+function hideCtx(){ document.getElementById('ctx').style.display='none'; }
+function ctxConn(){ hideCtx(); startConn(S.ctxId,'main'); }
+function ctxAlt() { hideCtx(); startConn(S.ctxId,'alt'); }
+function ctxDel() { hideCtx(); deleteNode(S.ctxId); }
+
+/* ===========================
+   IMPORT / EXPORT
+=========================== */
+function exportJSON() {
+  const data = {
+    nodes: S.nodes.map(n=>({...n})),
+    edges: S.edges.map(e=>({...e})),
+    nid: S.nid, eid: S.eid,
+  };
+  dl('travel-route.json', JSON.stringify(data,null,2), 'application/json');
+  toast('Route exported!');
+}
+
+function openImport() {
+  document.getElementById('import-ta').value = '';
+  document.getElementById('import-wrap').classList.add('open');
+}
+function closeImport()  { document.getElementById('import-wrap').classList.remove('open'); }
+function maybeCloseImport(e){ if(e.target===e.currentTarget) closeImport(); }
+
+function doImport() {
+  try {
+    const data = JSON.parse(document.getElementById('import-ta').value);
+    _clearWorld();
+    S.nid = data.nid || S.nid;
+    S.eid = data.eid || S.eid;
+    (data.nodes||[]).forEach(n => { S.nodes.push(n); _renderNode(n); });
+    (data.edges||[]).forEach(e => S.edges.push(e));
+    renderEdges();
+    updateStatus();
+    closeImport();
+    toast('Route imported!');
+    fitAll();
+  } catch(err) { alert('Invalid JSON: '+err.message); }
+}
+
+function clearAll() {
+  if(!confirm('Clear all stops and connections?')) return;
+  _clearWorld();
+  updateStatus();
+}
+
+function _clearWorld() {
+  S.nodes=[]; S.edges=[]; S.nid=1; S.eid=1;
+  world.querySelectorAll('.node,.elabel,.edelbtn').forEach(el=>el.remove());
+  svg.querySelectorAll('.ep').forEach(el=>el.remove());
+}
+
+/* ===========================
+   DOWNLOADS
+=========================== */
+function dl(name, content, type) {
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([content],{type}));
+  a.download=name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
+function downloadItinerary() {
+  const sorted=[...S.nodes].sort((a,b)=>a.y-b.y);
+  let txt='╔══════════════════════════════╗\n';
+  txt+=    '║     TRAVEL ITINERARY          ║\n';
+  txt+=    '╚══════════════════════════════╝\n\n';
+  sorted.forEach((n,i)=>{
+    txt+=`Stop ${i+1}: ${n.location}\n`;
+    if(n.date)  txt+=`  📅 Date  : ${n.date}\n`;
+    if(n.time)  txt+=`  🕐 Time  : ${n.time}\n`;
+    if(n.hotel) txt+=`  🏨 Hotel : ${n.hotel}\n`;
+    if(n.notes) txt+=`  📝 Notes : ${n.notes}\n`;
+    const me = S.edges.find(e=>e.from===n.id&&e.type==='main');
+    if(me && i<sorted.length-1) txt+=`  ──────────────────────────\n  → ${me.label||'(onward connection)'}\n`;
+    txt+='\n';
+  });
+  const alts=S.edges.filter(e=>e.type==='alt');
+  if(alts.length){
+    txt+='──────────────────────────────\nALTERNATIVE ROUTES\n──────────────────────────────\n';
+    alts.forEach(e=>{
+      const f=S.nodes.find(n=>n.id===e.from), t=S.nodes.find(n=>n.id===e.to);
+      if(f&&t) txt+=`  ⤴ ${f.location} → ${t.location}${e.label?' ('+e.label+')':''}\n`;
+    });
+  }
+  dl('itinerary.txt', txt, 'text/plain');
+  toast('Itinerary downloaded!');
+}
+
+async function captureCanvas() {
+  if(!window.html2canvas) { toast('html2canvas not loaded'); return null; }
+  const origT = world.style.transform;
+  world.style.transform = 'none';
+  try {
+    const bounds = _bounds();
+    const cvs = await html2canvas(world, {
+      backgroundColor:'#0f172a',
+      x: Math.max(0, bounds.x-50), y: Math.max(0, bounds.y-50),
+      width: bounds.w+100, height: bounds.h+100,
+      scale: 2, useCORS: true, allowTaint: true,
+      logging: false,
+      ignoreElements: el => el.id==='help-tip',
+    });
+    return cvs;
+  } finally {
+    world.style.transform = origT;
+  }
+}
+
+async function downloadImage() {
+  toast('Generating image…');
+  try {
+    const cvs = await captureCanvas();
+    if(!cvs) return;
+    const a=document.createElement('a');
+    a.download='travel-route.png';
+    a.href=cvs.toDataURL('image/png');
+    a.click();
+    toast('Image downloaded!');
+  } catch(e){ toast('Error: '+e.message); }
+}
+
+async function downloadPDF() {
+  toast('Generating PDF…');
+  try {
+    const cvs = await captureCanvas();
+    if(!cvs) return;
+    const {jsPDF} = window.jspdf;
+    const pw=cvs.width, ph=cvs.height;
+    const orient = pw>ph ? 'landscape' : 'portrait';
+    const pdf = new jsPDF({orientation:orient, unit:'px', format:[pw/2,ph/2]});
+    pdf.addImage(cvs.toDataURL('image/png'),'PNG',0,0,pw/2,ph/2);
+    pdf.save('travel-route.pdf');
+    toast('PDF downloaded!');
+  } catch(e){ toast('Error: '+e.message); }
+}
+
+function _bounds() {
+  if(!S.nodes.length) return {x:0,y:0,w:800,h:600};
+  const xs=S.nodes.map(n=>n.x), ys=S.nodes.map(n=>n.y);
+  const x1=Math.min(...xs), y1=Math.min(...ys);
+  const x2=Math.max(...xs)+220, y2=Math.max(...ys)+180;
+  return {x:x1,y:y1,w:x2-x1,h:y2-y1};
+}
+
+/* ===========================
+   UTILS
+=========================== */
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function updateStatus() {
+  const ns=S.nodes.length, es=S.edges.length;
+  document.getElementById('st-nodes').textContent=ns+' stop'+(ns!==1?'s':'');
+  document.getElementById('st-edges').textContent=es+' connection'+(es!==1?'s':'');
+}
+
+let _tt;
+function toast(msg) {
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(_tt); _tt=setTimeout(()=>el.classList.remove('show'),2600);
+}
+
+/* ===========================
+   SAMPLE DATA
+=========================== */
+applyT(); updateStatus();
+
+(()=>{
+  const n1=addNodeAt(160, 80,  {location:'New York (JFK)',  date:'Jun 1',  time:'09:00', hotel:'The Plaza Hotel',       notes:'Check-in day before'});
+  const n2=addNodeAt(160, 300, {location:'London (LHR)',    date:'Jun 1',  time:'21:30', hotel:'The Ritz London',        notes:'Arrive evening'});
+  const n3=addNodeAt(160, 520, {location:'Paris (CDG)',     date:'Jun 4',  time:'11:00', hotel:'Hôtel de Crillon',       notes:'3-night stay'});
+  const n4=addNodeAt(160, 740, {location:'Rome (FCO)',      date:'Jun 7',  time:'10:30', hotel:'Hotel Hassler Roma',     notes:'Colosseum day trip'});
+  const n5=addNodeAt(500, 300, {location:'Dublin (DUB)',    date:'Jun 2',  time:'14:00', hotel:'The Shelbourne Dublin',  notes:'Alternative stop'});
+  const n6=addNodeAt(500, 520, {location:'Amsterdam (AMS)', date:'Jun 4',  time:'13:00', hotel:'Hotel V Nesplein',       notes:'Alt: skip Paris'});
+
+  addEdge(n1.id, n2.id, 'main', 'BA 178 ✈ 7h');
+  addEdge(n2.id, n3.id, 'main', 'Eurostar 🚄 2h20');
+  addEdge(n3.id, n4.id, 'main', 'AF 1100 ✈ 2h05');
+  addEdge(n1.id, n5.id, 'alt',  'EI 105 ✈ 6h40');
+  addEdge(n5.id, n6.id, 'alt',  'EI 603 ✈ 1h35');
+  addEdge(n6.id, n4.id, 'alt',  'KL 1597 ✈ 2h');
+  fitAll();
+})();
+</script>
+</body>
+</html>
