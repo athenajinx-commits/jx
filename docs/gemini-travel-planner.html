@@ -124,6 +124,13 @@
         .route-block.editing .display-view { display: none; }
         .route-block.editing .edit-view { display: block; }
 
+        .route-block.print-mode {
+            width: 190px;
+            padding: 10px 14px;
+            cursor: default;
+        }
+        .route-block.print-mode .disp-name { white-space: normal; overflow: visible; text-overflow: unset; }
+
         .disp-name { font-weight: bold; font-size: 0.95rem; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .disp-date { font-size: 0.8rem; color: #718096; }
 
@@ -203,12 +210,12 @@
         <h1>Interactive Travel Route Navigator</h1>
         <p class="subtitle">💡 Tips: Use <b>🔗 Link Mode</b> to connect blocks. Click the red <b>×</b> next to a line label to delete that route link.</p>
         <div class="toolbar">
-            <button onclick="addBlock()">+ Add Start Block</button>
+            <button onclick="addBlock()">+ Add Location</button>
             <button onclick="exportJSON()">Export JSON</button>
             <label class="file-label">
                 Import JSON <input type="file" id="importFile" accept=".json" onchange="importJSON(event)">
             </label>
-            <button onclick="downloadText()">Download Itinerary (TXT)</button>
+            <button onclick="downloadMarkdown()">Download Itinerary (MD)</button>
             <button onclick="downloadImage()">Download Image (PNG)</button>
             <button onclick="downloadPDF()">Download PDF</button>
             <button class="btn-danger" onclick="clearWorkspace()">Clear Canvas</button>
@@ -233,8 +240,12 @@
         let connections = [];
         let draggingBlock = null;
         let dragOffset = { x: 0, y: 0 };
+        let dragStart = { x: 0, y: 0 };
+        let dragMoved = false;
         let activeEditId = null;
         let linkingSourceId = null;
+        let printMode = false;
+        let placementCounter = 0;
 
         const START_X = 50;
         const START_Y = 80;
@@ -244,15 +255,57 @@
         const workspace = document.getElementById('workspace');
         const svg = document.getElementById('canvas-svg');
 
+        function escapeHtml(str) {
+            return String(str ?? '').replace(/[&<>"']/g, ch => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[ch]));
+        }
+
+        function edgePoint(cx, cy, halfW, halfH, tx, ty) {
+            const dx = tx - cx, dy = ty - cy;
+            if (dx === 0 && dy === 0) return { x: cx, y: cy };
+            const scaleX = dx !== 0 ? halfW / Math.abs(dx) : Infinity;
+            const scaleY = dy !== 0 ? halfH / Math.abs(dy) : Infinity;
+            const scale = Math.min(scaleX, scaleY);
+            return { x: cx + dx * scale, y: cy + dy * scale };
+        }
+
+        function nextSnakePosition() {
+            const index = placementCounter++;
+            let row = Math.floor(index / 4);
+            let col = index % 4;
+            if (row % 2 === 1) { col = 3 - col; }
+            return { x: START_X + (col * GAP_X), y: START_Y + (row * GAP_Y) };
+        }
+
         function loadSample() {
+            fetch('lodon-barcelona2026.json')
+                .then(res => {
+                    if (!res.ok) throw new Error('Failed to fetch default itinerary');
+                    return res.json();
+                })
+                .then(data => {
+                    if (!data.blocks || !data.connections) throw new Error('Invalid default itinerary format');
+                    blocks = data.blocks;
+                    connections = data.connections;
+                    placementCounter = blocks.length;
+                    render();
+                })
+                .catch(err => {
+                    console.warn('Falling back to built-in sample itinerary:', err);
+                    loadFallbackSample();
+                });
+        }
+
+        function loadFallbackSample() {
             blocks = [
-                { id: 1, x: 0, y: 0, location: 'London, UK', datetime: '2026-07-01', returndate: '2026-07-15', hotel: 'The Ritz', isFinalReturn: true },
-                { id: 2, x: 0, y: 0, location: 'Paris, France', datetime: '2026-07-03', returndate: '', hotel: 'Hotel Lumiere' },
-                { id: 3, x: 0, y: 0, location: 'Lyon', datetime: '2026-07-06', returndate: '', hotel: 'Grand Central' },
-                { id: 4, x: 0, y: 0, location: 'Nice', datetime: '2026-07-09', returndate: '', hotel: 'Sea View Inn' },
-                { id: 5, x: 0, y: 0, location: 'Barcelona', datetime: '2026-07-12', returndate: '', hotel: 'Casa Sol' }
+                { id: 1, x: 0, y: 0, location: 'London, UK', datetime: '2026-07-01', departdate: '2026-07-03', hotel: 'The Ritz' },
+                { id: 2, x: 0, y: 0, location: 'Paris, France', datetime: '2026-07-03', departdate: '2026-07-06', hotel: 'Hotel Lumiere' },
+                { id: 3, x: 0, y: 0, location: 'Lyon', datetime: '2026-07-06', departdate: '2026-07-09', hotel: 'Grand Central' },
+                { id: 4, x: 0, y: 0, location: 'Nice', datetime: '2026-07-09', departdate: '2026-07-12', hotel: 'Sea View Inn' },
+                { id: 5, x: 0, y: 0, location: 'Barcelona', datetime: '2026-07-12', departdate: '2026-07-15', hotel: 'Casa Sol' }
             ];
-            
+
             connections = [
                 { from: 1, to: 2, type: 'main', transport: 'Eurostar' },
                 { from: 2, to: 3, type: 'main', transport: 'TGV Train' },
@@ -262,6 +315,7 @@
             ];
 
             calculateSnakePositions();
+            placementCounter = blocks.length;
             render();
         }
 
@@ -294,10 +348,15 @@
                 const toWidth = (activeEditId === toBlock.id) ? 220 : 150;
                 const toHeight = (activeEditId === toBlock.id) ? 170 : 55;
 
-                const x1 = fromBlock.x + (fromWidth / 2);
-                const y1 = fromBlock.y + (fromHeight / 2);
-                const x2 = toBlock.x + (toWidth / 2);
-                const y2 = toBlock.y + (toHeight / 2);
+                const fromCx = fromBlock.x + (fromWidth / 2);
+                const fromCy = fromBlock.y + (fromHeight / 2);
+                const toCx = toBlock.x + (toWidth / 2);
+                const toCy = toBlock.y + (toHeight / 2);
+
+                const EDGE_GAP = 6;
+                const start = edgePoint(fromCx, fromCy, (fromWidth / 2) + EDGE_GAP, (fromHeight / 2) + EDGE_GAP, toCx, toCy);
+                const end = edgePoint(toCx, toCy, (toWidth / 2) + EDGE_GAP, (toHeight / 2) + EDGE_GAP, fromCx, fromCy);
+                const x1 = start.x, y1 = start.y, x2 = end.x, y2 = end.y;
 
                 const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
                 line.setAttribute('x1', x1);
@@ -343,27 +402,36 @@
             // Render Blocks
             blocks.forEach(block => {
                 const el = document.createElement('div');
-                el.className = `route-block ${activeEditId === block.id ? 'editing selected' : ''} ${linkingSourceId === block.id ? 'linking-source' : ''}`;
                 el.style.left = `${block.x}px`;
                 el.style.top = `${block.y}px`;
 
+                if (printMode) {
+                    el.className = 'route-block print-mode';
+                    el.innerHTML = `
+                        <div class="disp-name">📍 ${escapeHtml(block.location) || 'Stop'}</div>
+                        <div class="disp-date">📅 ${escapeHtml(block.datetime) || 'Set Date'}</div>
+                        ${block.departdate ? `<div class="disp-date" style="color:#2b6cb0">🛫 ${escapeHtml(block.departdate)}</div>` : ''}
+                        ${block.hotel ? `<div class="disp-date">🏨 ${escapeHtml(block.hotel)}</div>` : ''}
+                    `;
+                    workspace.appendChild(el);
+                    return;
+                }
+
+                el.className = `route-block ${activeEditId === block.id ? 'editing selected' : ''} ${linkingSourceId === block.id ? 'linking-source' : ''}`;
+
                 el.innerHTML = `
                     <div class="display-view">
-                        <div class="disp-name">${block.location || 'Stop'}</div>
-                        <div class="disp-date">${block.datetime || 'Set Date'}</div>
-                        ${block.isFinalReturn && block.returndate ? `<div class="disp-date" style="color:#2b6cb0">↩ ${block.returndate}</div>` : ''}
+                        <div class="disp-name">${escapeHtml(block.location) || 'Stop'}</div>
+                        <div class="disp-date">${escapeHtml(block.datetime) || 'Set Date'}</div>
+                        ${block.departdate ? `<div class="disp-date" style="color:#2b6cb0">🛫 ${escapeHtml(block.departdate)}</div>` : ''}
                     </div>
                     <div class="edit-view">
-                        <input class="block-field location-name" value="${block.location}" placeholder="Location Name" onchange="updateBlock(${block.id}, 'location', this.value)">
-                        <input class="block-field" value="${block.datetime}" placeholder="Arrival Date" onchange="updateBlock(${block.id}, 'datetime', this.value)">
-                        
-                        <label style="font-size:0.7rem; display:block; margin: 2px 0;">
-                            <input type="checkbox" ${block.isFinalReturn ? 'checked' : ''} onchange="updateBlock(${block.id}, 'isFinalReturn', this.checked); render();"> Round-trip / Origin Node
-                        </label>
-                        ${block.isFinalReturn ? `<input class="block-field" value="${block.returndate || ''}" placeholder="Return Date" onchange="updateBlock(${block.id}, 'returndate', this.value)">` : ''}
-                        
-                        <input class="block-field" value="${block.hotel || ''}" placeholder="Hotel Name" onchange="updateBlock(${block.id}, 'hotel', this.value)">
-                        
+                        <input class="block-field location-name" value="${escapeHtml(block.location)}" placeholder="Location Name" onchange="updateBlock(${block.id}, 'location', this.value)">
+                        <input class="block-field" value="${escapeHtml(block.datetime)}" placeholder="Arrival Date" onchange="updateBlock(${block.id}, 'datetime', this.value)">
+                        <input class="block-field" value="${escapeHtml(block.departdate || '')}" placeholder="Departure Date" onchange="updateBlock(${block.id}, 'departdate', this.value)">
+
+                        <input class="block-field" value="${escapeHtml(block.hotel || '')}" placeholder="Hotel Name" onchange="updateBlock(${block.id}, 'hotel', this.value)">
+
                         <div class="block-actions">
                             <span onclick="connectNext(${block.id}, 'main'); event.stopPropagation();">+ Next</span>
                             <span onclick="connectNext(${block.id}, 'alt'); event.stopPropagation();">+ Alt</span>
@@ -374,6 +442,7 @@
                 `;
 
                 el.addEventListener('click', (e) => {
+                    if (dragMoved) { dragMoved = false; return; }
                     if (linkingSourceId !== null) {
                         e.stopPropagation();
                         completeManualLink(block.id);
@@ -388,6 +457,9 @@
                 el.addEventListener('mousedown', (e) => {
                     if (e.target.tagName === 'INPUT' || e.target.tagName === 'SPAN' || e.target.classList.contains('line-del-btn')) return;
                     draggingBlock = block;
+                    dragMoved = false;
+                    dragStart.x = e.clientX;
+                    dragStart.y = e.clientY;
                     dragOffset.x = e.clientX - block.x;
                     dragOffset.y = e.clientY - block.y;
                 });
@@ -406,6 +478,9 @@
 
         window.addEventListener('mousemove', (e) => {
             if (!draggingBlock) return;
+            if (Math.abs(e.clientX - dragStart.x) > 3 || Math.abs(e.clientY - dragStart.y) > 3) {
+                dragMoved = true;
+            }
             draggingBlock.x = e.clientX - dragOffset.x;
             draggingBlock.y = e.clientY - dragOffset.y;
             render();
@@ -415,19 +490,19 @@
 
         function addBlock() {
             const id = Date.now();
-            blocks.push({ id, x: 0, y: 0, location: 'New Location', datetime: '', returndate: '', hotel: '', isFinalReturn: false });
-            calculateSnakePositions();
+            const pos = nextSnakePosition();
+            blocks.push({ id, x: pos.x, y: pos.y, location: 'New Location', datetime: '', departdate: '', hotel: '' });
             activeEditId = id;
             render();
         }
 
         function connectNext(fromId, type) {
             const id = Date.now();
-            blocks.push({ id, x: 0, y: 0, location: 'Next Stop', datetime: '', returndate: '', hotel: '', isFinalReturn: false });
+            const pos = nextSnakePosition();
+            blocks.push({ id, x: pos.x, y: pos.y, location: 'Next Stop', datetime: '', departdate: '', hotel: '' });
             connections.push({ from: fromId, to: id, type: type, transport: 'Transit' });
-            
-            calculateSnakePositions();
-            activeEditId = id; 
+
+            activeEditId = id;
             render();
         }
 
@@ -491,7 +566,6 @@
             connections = connections.filter(c => c.from !== id && c.to !== id);
             if (activeEditId === id) activeEditId = null;
             if (linkingSourceId === id) linkingSourceId = null;
-            calculateSnakePositions();
             render();
         }
 
@@ -506,10 +580,15 @@
         }
 
         function exportJSON() {
+            let filename = prompt("Enter a filename to save as:", "travel_route");
+            if (filename === null) return;
+            filename = filename.trim() || "travel_route";
+            if (!filename.toLowerCase().endsWith('.json')) filename += '.json';
+
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ blocks, connections }));
             const downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", "travel_route.json");
+            downloadAnchor.setAttribute("download", filename);
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             downloadAnchor.remove();
@@ -525,6 +604,7 @@
                     if (parsed.blocks && parsed.connections) {
                         blocks = parsed.blocks;
                         connections = parsed.connections;
+                        placementCounter = blocks.length;
                         render();
                     }
                 } catch (err) { alert("Error parsing file."); }
@@ -532,62 +612,131 @@
             reader.readAsText(file);
         }
 
-        function downloadText() {
-            let textOutput = "YOUR TRAVEL ITINERARY\n======================\n\n";
+        function downloadMarkdown() {
+            let md = `# 🗺️ Travel Itinerary\n\n`;
             blocks.forEach((b, i) => {
-                textOutput += `${i+1}. Location: ${b.location || 'N/A'}\n`;
-                textOutput += `   Arrive Date: ${b.datetime || 'N/A'}\n`;
-                if(b.isFinalReturn && b.returndate) {
-                    textOutput += `   Return Date: ${b.returndate}\n`;
+                md += `## ${i + 1}. 📍 ${b.location || 'N/A'}\n\n`;
+                md += `- 📅 **Arrival:** ${b.datetime || 'N/A'}\n`;
+                if (b.departdate) {
+                    md += `- 🛫 **Departure:** ${b.departdate}\n`;
                 }
-                if(b.hotel) textOutput += `   Accommodation: ${b.hotel}\n`;
-                
+                if (b.hotel) {
+                    md += `- 🏨 **Hotel:** ${b.hotel}\n`;
+                }
+
                 const outbox = connections.filter(c => c.from === b.id);
                 if (outbox.length > 0) {
-                    textOutput += `   Connections:\n`;
+                    md += `- 🚏 **Connections:**\n`;
                     outbox.forEach(c => {
                         const target = blocks.find(bl => bl.id === c.to);
-                        textOutput += `     -> [${c.type.toUpperCase()}] via "${c.transport}" to ${target ? target.location : 'Origin/End'}\n`;
+                        const icon = c.type === 'main' ? '➡️' : '🔀';
+                        md += `  - ${icon} via **${c.transport}** to ${target ? target.location : 'Origin/End'}\n`;
                     });
                 }
-                textOutput += "\n";
+                md += `\n`;
             });
 
             const element = document.createElement('a');
-            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(textOutput));
-            element.setAttribute('download', 'itinerary.txt');
+            element.setAttribute('href', 'data:text/markdown;charset=utf-8,' + encodeURIComponent(md));
+            element.setAttribute('download', 'itinerary.md');
             document.body.appendChild(element);
             element.click();
             element.remove();
         }
 
-        function downloadImage() {
+        function computeContentBounds() {
+            const ws = document.getElementById('workspace');
+            let maxX = 0, maxY = 0;
+            blocks.forEach(b => {
+                maxX = Math.max(maxX, b.x);
+                maxY = Math.max(maxY, b.y);
+            });
+            return {
+                width: Math.max(maxX + 260, ws.clientWidth),
+                height: Math.max(maxY + 220, ws.clientHeight)
+            };
+        }
+
+        function enterPrintMode() {
             activeEditId = null;
+            linkingSourceId = null;
+            printMode = true;
             render();
+        }
+
+        function exitPrintMode() {
+            printMode = false;
+            render();
+        }
+
+        function downloadImage() {
+            enterPrintMode();
             setTimeout(() => {
                 const ws = document.getElementById('workspace');
-                html2canvas(ws, { useCORS: true, allowTaint: true }).then(canvas => {
+                const bounds = computeContentBounds();
+                html2canvas(ws, {
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff',
+                    width: bounds.width,
+                    height: bounds.height,
+                    windowWidth: bounds.width,
+                    windowHeight: bounds.height
+                }).then(canvas => {
                     const link = document.createElement('a');
                     link.download = 'travel_route.png';
                     link.href = canvas.toDataURL();
                     link.click();
+                    exitPrintMode();
                 });
             }, 100);
         }
 
         function downloadPDF() {
-            activeEditId = null;
-            render();
+            enterPrintMode();
             setTimeout(() => {
                 const ws = document.getElementById('workspace');
-                html2canvas(ws, { scale: 2, useCORS: true }).then(canvas => {
-                    const imgData = canvas.toDataURL('image/png');
-                    const { jspdf } = window.jspdf;
-                    const pdf = new jspdf('l', 'mm', 'a4');
-                    const imgWidth = 297; 
+                const bounds = computeContentBounds();
+                html2canvas(ws, {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: '#ffffff',
+                    width: bounds.width,
+                    height: bounds.height,
+                    windowWidth: bounds.width,
+                    windowHeight: bounds.height
+                }).then(canvas => {
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('l', 'mm', 'a4');
+                    const pageWidth = 297;
+                    const pageHeight = 210;
+                    const imgWidth = pageWidth;
                     const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+
+                    if (imgHeight <= pageHeight) {
+                        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, imgWidth, imgHeight);
+                    } else {
+                        const pageHeightPx = (pageHeight * canvas.width) / imgWidth;
+                        let renderedHeightPx = 0;
+                        let pageIndex = 0;
+                        while (renderedHeightPx < canvas.height) {
+                            const sliceHeightPx = Math.min(pageHeightPx, canvas.height - renderedHeightPx);
+                            const pageCanvas = document.createElement('canvas');
+                            pageCanvas.width = canvas.width;
+                            pageCanvas.height = sliceHeightPx;
+                            const ctx = pageCanvas.getContext('2d');
+                            ctx.drawImage(canvas, 0, renderedHeightPx, canvas.width, sliceHeightPx, 0, 0, canvas.width, sliceHeightPx);
+
+                            const sliceImgHeight = (sliceHeightPx * imgWidth) / canvas.width;
+                            if (pageIndex > 0) pdf.addPage();
+                            pdf.addImage(pageCanvas.toDataURL('image/png'), 'PNG', 0, 0, imgWidth, sliceImgHeight);
+
+                            renderedHeightPx += sliceHeightPx;
+                            pageIndex++;
+                        }
+                    }
                     pdf.save('travel_route.pdf');
+                    exitPrintMode();
                 });
             }, 100);
         }
