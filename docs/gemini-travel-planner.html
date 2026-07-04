@@ -247,6 +247,8 @@
         let linkingSourceId = null;
         let printMode = false;
         let placementCounter = 0;
+        let blockEls = {};
+        let connEls = [];
 
         const START_X = 50;
         const START_Y = 80;
@@ -260,6 +262,33 @@
             return String(str ?? '').replace(/[&<>"']/g, ch => ({
                 '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
             }[ch]));
+        }
+
+        async function saveFile(blob, suggestedName, description, mimeType, extensions) {
+            if (window.showSaveFilePicker) {
+                try {
+                    const handle = await window.showSaveFilePicker({
+                        suggestedName,
+                        types: [{ description, accept: { [mimeType]: extensions } }]
+                    });
+                    const writable = await handle.createWritable();
+                    await writable.write(blob);
+                    await writable.close();
+                    return;
+                } catch (err) {
+                    if (err.name === 'AbortError') return;
+                    console.warn('File System Access save failed, falling back to standard download.', err);
+                }
+            }
+
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = suggestedName;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
         }
 
         function edgePoint(cx, cy, halfW, halfH, tx, ty) {
@@ -330,34 +359,62 @@
             });
         }
 
+        function getConnectionGeometry(conn) {
+            const fromBlock = blocks.find(b => b.id === conn.from);
+            const toBlock = blocks.find(b => b.id === conn.to);
+            if (!fromBlock || !toBlock) return null;
+
+            const fromWidth = (activeEditId === fromBlock.id) ? 220 : 150;
+            const fromHeight = (activeEditId === fromBlock.id) ? 170 : 55;
+            const toWidth = (activeEditId === toBlock.id) ? 220 : 150;
+            const toHeight = (activeEditId === toBlock.id) ? 170 : 55;
+
+            const fromCx = fromBlock.x + (fromWidth / 2);
+            const fromCy = fromBlock.y + (fromHeight / 2);
+            const toCx = toBlock.x + (toWidth / 2);
+            const toCy = toBlock.y + (toHeight / 2);
+
+            const EDGE_GAP = 6;
+            const start = edgePoint(fromCx, fromCy, (fromWidth / 2) + EDGE_GAP, (fromHeight / 2) + EDGE_GAP, toCx, toCy);
+            const end = edgePoint(toCx, toCy, (toWidth / 2) + EDGE_GAP, (toHeight / 2) + EDGE_GAP, fromCx, fromCy);
+            return { x1: start.x, y1: start.y, x2: end.x, y2: end.y };
+        }
+
+        function repositionDrag(block) {
+            const el = blockEls[block.id];
+            if (el) {
+                el.style.left = `${block.x}px`;
+                el.style.top = `${block.y}px`;
+            }
+            connections.forEach((conn, index) => {
+                if (conn.from !== block.id && conn.to !== block.id) return;
+                const geo = getConnectionGeometry(conn);
+                const refs = connEls[index];
+                if (!geo || !refs) return;
+                refs.line.setAttribute('x1', geo.x1);
+                refs.line.setAttribute('y1', geo.y1);
+                refs.line.setAttribute('x2', geo.x2);
+                refs.line.setAttribute('y2', geo.y2);
+                refs.wrapper.style.left = `${(geo.x1 + geo.x2) / 2}px`;
+                refs.wrapper.style.top = `${(geo.y1 + geo.y2) / 2}px`;
+            });
+        }
+
         function render() {
             document.querySelectorAll('.route-block').forEach(el => el.remove());
             document.querySelectorAll('.line-wrapper').forEach(el => el.remove());
-            
+
             const defs = svg.querySelector('defs');
             svg.innerHTML = '';
             svg.appendChild(defs);
+            blockEls = {};
+            connEls = [];
 
             // Render Connections
             connections.forEach((conn, index) => {
-                const fromBlock = blocks.find(b => b.id === conn.from);
-                const toBlock = blocks.find(b => b.id === conn.to);
-                if (!fromBlock || !toBlock) return;
-
-                const fromWidth = (activeEditId === fromBlock.id) ? 220 : 150;
-                const fromHeight = (activeEditId === fromBlock.id) ? 170 : 55;
-                const toWidth = (activeEditId === toBlock.id) ? 220 : 150;
-                const toHeight = (activeEditId === toBlock.id) ? 170 : 55;
-
-                const fromCx = fromBlock.x + (fromWidth / 2);
-                const fromCy = fromBlock.y + (fromHeight / 2);
-                const toCx = toBlock.x + (toWidth / 2);
-                const toCy = toBlock.y + (toHeight / 2);
-
-                const EDGE_GAP = 6;
-                const start = edgePoint(fromCx, fromCy, (fromWidth / 2) + EDGE_GAP, (fromHeight / 2) + EDGE_GAP, toCx, toCy);
-                const end = edgePoint(toCx, toCy, (toWidth / 2) + EDGE_GAP, (toHeight / 2) + EDGE_GAP, fromCx, fromCy);
-                const x1 = start.x, y1 = start.y, x2 = end.x, y2 = end.y;
+                const geo = getConnectionGeometry(conn);
+                if (!geo) return;
+                const { x1, y1, x2, y2 } = geo;
 
                 const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
                 line.setAttribute('x1', x1);
@@ -398,6 +455,7 @@
                 wrapper.appendChild(label);
                 wrapper.appendChild(delBtn);
                 workspace.appendChild(wrapper);
+                connEls[index] = { line, wrapper };
             });
 
             // Render Blocks
@@ -476,6 +534,7 @@
                 }, { passive: true });
 
                 workspace.appendChild(el);
+                blockEls[block.id] = el;
             });
         }
 
@@ -494,7 +553,7 @@
             }
             draggingBlock.x = clientX - dragOffset.x;
             draggingBlock.y = clientY - dragOffset.y;
-            render();
+            repositionDrag(draggingBlock);
         }
 
         window.addEventListener('mousemove', (e) => {
@@ -604,19 +663,18 @@
             }
         }
 
-        function exportJSON() {
-            let filename = prompt("Enter a filename to save as:", "travel_route");
-            if (filename === null) return;
-            filename = filename.trim() || "travel_route";
-            if (!filename.toLowerCase().endsWith('.json')) filename += '.json';
+        async function exportJSON() {
+            let filename = 'travel_route.json';
+            if (!window.showSaveFilePicker) {
+                let entered = prompt("Enter a filename to save as:", "travel_route");
+                if (entered === null) return;
+                entered = entered.trim() || "travel_route";
+                if (!entered.toLowerCase().endsWith('.json')) entered += '.json';
+                filename = entered;
+            }
 
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ blocks, connections }));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", filename);
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
+            const blob = new Blob([JSON.stringify({ blocks, connections }, null, 2)], { type: 'application/json' });
+            await saveFile(blob, filename, 'JSON File', 'application/json', ['.json']);
         }
 
         function importJSON(event) {
@@ -637,7 +695,7 @@
             reader.readAsText(file);
         }
 
-        function downloadMarkdown() {
+        async function downloadMarkdown() {
             let md = `# 🗺️ Travel Itinerary\n\n`;
             blocks.forEach((b, i) => {
                 md += `## ${i + 1}. 📍 ${b.location || 'N/A'}\n\n`;
@@ -661,12 +719,8 @@
                 md += `\n`;
             });
 
-            const element = document.createElement('a');
-            element.setAttribute('href', 'data:text/markdown;charset=utf-8,' + encodeURIComponent(md));
-            element.setAttribute('download', 'itinerary.md');
-            document.body.appendChild(element);
-            element.click();
-            element.remove();
+            const blob = new Blob([md], { type: 'text/markdown' });
+            await saveFile(blob, 'itinerary.md', 'Markdown File', 'text/markdown', ['.md']);
         }
 
         function computeContentBounds() {
@@ -708,11 +762,10 @@
                     windowWidth: bounds.width,
                     windowHeight: bounds.height
                 }).then(canvas => {
-                    const link = document.createElement('a');
-                    link.download = 'travel_route.png';
-                    link.href = canvas.toDataURL();
-                    link.click();
-                    exitPrintMode();
+                    canvas.toBlob(async (blob) => {
+                        await saveFile(blob, 'travel_route.png', 'PNG Image', 'image/png', ['.png']);
+                        exitPrintMode();
+                    }, 'image/png');
                 });
             }, 100);
         }
@@ -730,7 +783,7 @@
                     height: bounds.height,
                     windowWidth: bounds.width,
                     windowHeight: bounds.height
-                }).then(canvas => {
+                }).then(async (canvas) => {
                     const { jsPDF } = window.jspdf;
                     const pdf = new jsPDF('l', 'mm', 'a4');
                     const pageWidth = 297;
@@ -760,7 +813,8 @@
                             pageIndex++;
                         }
                     }
-                    pdf.save('travel_route.pdf');
+                    const pdfBlob = pdf.output('blob');
+                    await saveFile(pdfBlob, 'travel_route.pdf', 'PDF File', 'application/pdf', ['.pdf']);
                     exitPrintMode();
                 });
             }, 100);
