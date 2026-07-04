@@ -92,6 +92,7 @@
             z-index: 2;
             cursor: move;
             user-select: none;
+            touch-action: none;
             box-sizing: border-box;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
@@ -454,15 +455,25 @@
                     }
                 });
 
-                el.addEventListener('mousedown', (e) => {
-                    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SPAN' || e.target.classList.contains('line-del-btn')) return;
+                const startDragging = (clientX, clientY) => {
                     draggingBlock = block;
                     dragMoved = false;
-                    dragStart.x = e.clientX;
-                    dragStart.y = e.clientY;
-                    dragOffset.x = e.clientX - block.x;
-                    dragOffset.y = e.clientY - block.y;
+                    dragStart.x = clientX;
+                    dragStart.y = clientY;
+                    dragOffset.x = clientX - block.x;
+                    dragOffset.y = clientY - block.y;
+                };
+
+                el.addEventListener('mousedown', (e) => {
+                    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SPAN' || e.target.classList.contains('line-del-btn')) return;
+                    startDragging(e.clientX, e.clientY);
                 });
+
+                el.addEventListener('touchstart', (e) => {
+                    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SPAN' || e.target.classList.contains('line-del-btn')) return;
+                    const touch = e.touches[0];
+                    startDragging(touch.clientX, touch.clientY);
+                }, { passive: true });
 
                 workspace.appendChild(el);
             });
@@ -476,17 +487,31 @@
             }
         });
 
-        window.addEventListener('mousemove', (e) => {
+        function updateDragPosition(clientX, clientY) {
             if (!draggingBlock) return;
-            if (Math.abs(e.clientX - dragStart.x) > 3 || Math.abs(e.clientY - dragStart.y) > 3) {
+            if (Math.abs(clientX - dragStart.x) > 3 || Math.abs(clientY - dragStart.y) > 3) {
                 dragMoved = true;
             }
-            draggingBlock.x = e.clientX - dragOffset.x;
-            draggingBlock.y = e.clientY - dragOffset.y;
+            draggingBlock.x = clientX - dragOffset.x;
+            draggingBlock.y = clientY - dragOffset.y;
             render();
+        }
+
+        window.addEventListener('mousemove', (e) => {
+            updateDragPosition(e.clientX, e.clientY);
         });
 
         window.addEventListener('mouseup', () => { draggingBlock = null; });
+
+        window.addEventListener('touchmove', (e) => {
+            if (!draggingBlock) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            updateDragPosition(touch.clientX, touch.clientY);
+        }, { passive: false });
+
+        window.addEventListener('touchend', () => { draggingBlock = null; });
+        window.addEventListener('touchcancel', () => { draggingBlock = null; });
 
         function addBlock() {
             const id = Date.now();
