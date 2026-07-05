@@ -15,6 +15,32 @@
             --border: #cbd5e0;
             --text: #2d3748;
             --accent: #ed8936;
+            --header-bg: #ffffff;
+            --workspace-bg: #ffffff;
+            --muted-text: #718096;
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --btn-secondary-bg: #edf2f7;
+            --btn-secondary-text: #2d3748;
+            --btn-secondary-hover: #e2e8f0;
+            --modal-overlay: rgba(0,0,0,0.5);
+        }
+
+        :root[data-theme="dark"] {
+            --primary: #63b3ed;
+            --primary-hover: #90cdf4;
+            --bg: #1a202c;
+            --block-bg: #2d3748;
+            --border: #4a5568;
+            --text: #e2e8f0;
+            --accent: #f6ad55;
+            --header-bg: #232b3a;
+            --workspace-bg: #232b3a;
+            --muted-text: #a0aec0;
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.4);
+            --btn-secondary-bg: #2d3748;
+            --btn-secondary-text: #e2e8f0;
+            --btn-secondary-hover: #3a4658;
+            --modal-overlay: rgba(0,0,0,0.7);
         }
 
         body {
@@ -23,38 +49,86 @@
             color: var(--text);
             margin: 0;
             padding: 20px;
+            transition: background-color 0.2s, color 0.2s;
         }
 
         header {
-            margin-bottom: 20px;
-            background: white;
-            padding: 15px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            margin-bottom: 14px;
+            background: var(--header-bg);
+            padding: 10px 20px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            transition: background-color 0.2s;
         }
 
-        h1 { margin: 0 0 5px 0; font-size: 1.5rem; color: var(--primary); }
-        .subtitle { margin: 0 0 15px 0; font-size: 0.85rem; color: #718096; }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        h1 { margin: 0; font-size: 1.3rem; color: var(--primary); letter-spacing: -0.02em; }
+
+        .header-controls {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .icon-btn {
+            background: var(--btn-secondary-bg);
+            color: var(--btn-secondary-text);
+        }
+        .icon-btn:hover { background: var(--btn-secondary-hover); }
 
         .toolbar {
             display: flex;
-            gap: 10px;
+            gap: 14px;
             flex-wrap: wrap;
+            align-items: center;
         }
+
+        .toolbar-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            padding-right: 14px;
+            border-right: 1px solid var(--border);
+        }
+        .toolbar-group:last-child { border-right: none; padding-right: 0; }
+
+        .toolbar-label {
+            color: var(--muted-text);
+            font-size: 0.85rem;
+            font-weight: 500;
+            align-self: center;
+        }
+
         button, .file-label {
             background-color: var(--primary);
             color: white;
             border: none;
             padding: 8px 16px;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
             font-weight: 500;
             font-size: 0.9rem;
-            transition: background 0.2s;
+            transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
             display: inline-block;
         }
 
-        button:hover, .file-label:hover { background-color: var(--primary-hover); }
+        button:hover, .file-label:hover { background-color: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
+        button:active, .file-label:active { transform: translateY(0); }
+
+        .btn-secondary {
+            background-color: var(--btn-secondary-bg);
+            color: var(--btn-secondary-text);
+        }
+        .btn-secondary:hover { background-color: var(--btn-secondary-hover); }
+
         .btn-danger { background-color: #e53e3e; }
         .btn-danger:hover { background-color: #9b2c2c; }
         input[type="file"] { display: none; }
@@ -63,12 +137,13 @@
             position: relative;
             width: 100%;
             min-height: 75vh;
-            background: white;
+            background: var(--workspace-bg);
             border-radius: 8px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow);
             overflow: auto;
             padding: 40px;
             box-sizing: border-box;
+            transition: background-color 0.2s;
         }
 
         #canvas-svg {
@@ -133,10 +208,11 @@
         .route-block.print-mode .disp-name { white-space: normal; overflow: visible; text-overflow: unset; }
 
         .disp-name { font-weight: bold; font-size: 0.95rem; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .disp-date { font-size: 0.8rem; color: #718096; }
+        .disp-date { font-size: 0.8rem; color: var(--muted-text); }
 
         .block-field {
             width: 100%;
+            background: transparent;
             border: none;
             border-bottom: 1px dashed var(--border);
             margin-bottom: 6px;
@@ -173,7 +249,8 @@
         }
 
         .line-label {
-            background: white;
+            background: var(--block-bg);
+            color: var(--text);
             border: 1px solid var(--border);
             padding: 1px 6px;
             border-radius: 4px;
@@ -203,25 +280,135 @@
         .line-wrapper:hover .line-del-btn {
             opacity: 1;
         }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: var(--modal-overlay);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .modal-overlay.hidden { display: none; }
+
+        .modal-box {
+            background: var(--block-bg);
+            color: var(--text);
+            border-radius: 10px;
+            max-width: 560px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: var(--block-bg);
+        }
+
+        .modal-header h2 { margin: 0; font-size: 1.2rem; color: var(--primary); }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--muted-text);
+            font-size: 1.3rem;
+            line-height: 1;
+            padding: 4px 8px;
+            box-shadow: none;
+        }
+        .modal-close:hover { background: var(--btn-secondary-hover); color: var(--text); transform: none; box-shadow: none; }
+
+        .modal-body { padding: 4px 20px 20px; font-size: 0.9rem; line-height: 1.5; }
+        .modal-body h3 { color: var(--primary); font-size: 1rem; margin: 16px 0 6px; }
+        .modal-body p { margin: 4px 0; }
+        .modal-body ul { margin: 4px 0; padding-left: 22px; }
+        .modal-body li { margin-bottom: 6px; }
+        .modal-body .tip-box {
+            background: var(--btn-secondary-bg);
+            border-radius: 8px;
+            padding: 10px 14px;
+            margin-top: 14px;
+            font-size: 0.85rem;
+            color: var(--muted-text);
+        }
+        .modal-footer {
+            padding: 12px 20px 18px;
+            display: flex;
+            justify-content: flex-end;
+        }
     </style>
 </head>
 <body>
 
     <header>
-        <h1>Interactive Travel Route Navigator</h1>
-        <p class="subtitle">💡 Tips: Use <b>🔗 Link Mode</b> to connect blocks. Click the red <b>×</b> next to a line label to delete that route link.</p>
+        <div class="header-top">
+            <h1>🧭 Interactive Travel Route Navigator</h1>
+            <div class="header-controls">
+                <button class="icon-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Switch between light and dark colors">🌙 Dark Mode</button>
+                <button class="icon-btn" onclick="openHelp()" title="Show instructions for using this app">❓ Help</button>
+            </div>
+        </div>
         <div class="toolbar">
-            <button onclick="addBlock()">+ Add Location</button>
-            <button onclick="exportJSON()">Export JSON</button>
-            <label class="file-label">
-                Import JSON <input type="file" id="importFile" accept=".json" onchange="importJSON(event)">
-            </label>
-            <button onclick="downloadMarkdown()">Download Itinerary (MD)</button>
-            <button onclick="downloadImage()">Download Image (PNG)</button>
-            <button onclick="downloadPDF()">Download PDF</button>
-            <button class="btn-danger" onclick="clearWorkspace()">Clear Canvas</button>
+            <div class="toolbar-group">
+                <button onclick="addBlock()" title="Add a new stop to your trip">➕ Add Location</button>
+                <button class="btn-danger" onclick="clearWorkspace()" title="Erase everything and start a new trip">🗑️ Clear All</button>
+            </div>
+            <div class="toolbar-group">
+                <button class="btn-secondary" onclick="exportJSON()" title="Save your trip as a project file (JSON format) so you can continue editing it later">💾 Save My Trip</button>
+                <label class="file-label btn-secondary" title="Open a trip project file you saved before (JSON format)">
+                    📂 Open Saved Trip <input type="file" id="importFile" accept=".json" onchange="importJSON(event)">
+                </label>
+            </div>
+            <div class="toolbar-group">
+                <span class="toolbar-label">Download Itinerary:</span>
+                <button class="btn-secondary" onclick="downloadMarkdown()" title="Download your itinerary as a Markdown text file you can take with you and read anywhere">📝 Markdown</button>
+                <button class="btn-secondary" onclick="downloadImage()" title="Download your itinerary as a picture">🖼️ Picture</button>
+                <button class="btn-secondary" onclick="downloadPDF()" title="Download your itinerary as a printable PDF">📄 PDF</button>
+            </div>
         </div>
     </header>
+
+    <div class="modal-overlay hidden" id="helpModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h2>❓ How to Use This App</h2>
+                <button class="modal-close" onclick="closeHelp()" title="Close">✕</button>
+            </div>
+            <div class="modal-body">
+                <h3>🗺️ Building your trip</h3>
+                <ul>
+                    <li><b>➕ Add Location</b> creates a new stop. Click a stop to open it and fill in the place name, arrival date, departure date, and hotel.</li>
+                    <li><b>Move a stop</b> by pressing and dragging it (works with mouse or finger on touch screens) to anywhere on the board.</li>
+                    <li><b>Connect two stops</b> with an arrow to show your route: open a stop and click <b>+ Next</b> (or <b>+ Alt</b> for an alternative route), or click <b>🔗 Connect</b> and then click the destination stop.</li>
+                    <li><b>Remove a stop</b> by opening it and clicking <b>Delete</b>. Remove just a connecting line by clicking the small red <b>×</b> next to its label.</li>
+                </ul>
+                <h3>💾 Saving and sharing your trip</h3>
+                <ul>
+                    <li><b>💾 Save My Trip</b> — saves your work as a project file (JSON format) on your device so you can close the browser and continue later. Use <b>📂 Open Saved Trip</b> to load that same JSON file back in and pick up where you left off.</li>
+                    <li><b>📝 Download Itinerary (Markdown)</b> — a simple text file you can take with you and read anywhere, even without internet, on your phone, in an email, or in any notes app.</li>
+                    <li><b>🖼️ Download Itinerary (Picture)</b> — a snapshot image of your trip map, handy for sharing on chat apps or social media.</li>
+                    <li><b>📄 Download Itinerary (PDF)</b> — a printable document version of your trip map, good for printing or attaching to an email.</li>
+                </ul>
+                <h3>🌙 Dark Mode</h3>
+                <p>Use the <b>Dark Mode</b> button in the top-right to switch between light and dark colors — your choice is remembered next time you visit.</p>
+                <div class="tip-box">You can reopen these instructions anytime with the <b>❓ Help</b> button.</div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeHelp()">Got it!</button>
+            </div>
+        </div>
+    </div>
 
     <div id="workspace">
         <svg id="canvas-svg">
@@ -257,6 +444,41 @@
 
         const workspace = document.getElementById('workspace');
         const svg = document.getElementById('canvas-svg');
+
+        const THEME_KEY = 'travelPlannerTheme';
+
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem(THEME_KEY, theme);
+            const btn = document.getElementById('themeToggleBtn');
+            if (btn) btn.innerHTML = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+            applyTheme(current === 'dark' ? 'light' : 'dark');
+        }
+
+        function initTheme() {
+            let saved = null;
+            try { saved = localStorage.getItem(THEME_KEY); } catch (e) { /* storage unavailable */ }
+            applyTheme(saved || 'light');
+        }
+
+        function openHelp() {
+            document.getElementById('helpModal').classList.remove('hidden');
+        }
+
+        function closeHelp() {
+            document.getElementById('helpModal').classList.add('hidden');
+        }
+
+        function initHelp() {
+            const modal = document.getElementById('helpModal');
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeHelp();
+            });
+        }
 
         function escapeHtml(str) {
             return String(str ?? '').replace(/[&<>"']/g, ch => ({
@@ -469,7 +691,7 @@
                     el.innerHTML = `
                         <div class="disp-name">📍 ${escapeHtml(block.location) || 'Stop'}</div>
                         <div class="disp-date">📅 ${escapeHtml(block.datetime) || 'Set Date'}</div>
-                        ${block.departdate ? `<div class="disp-date" style="color:#2b6cb0">🛫 ${escapeHtml(block.departdate)}</div>` : ''}
+                        ${block.departdate ? `<div class="disp-date" style="color:var(--primary)">🛫 ${escapeHtml(block.departdate)}</div>` : ''}
                         ${block.hotel ? `<div class="disp-date">🏨 ${escapeHtml(block.hotel)}</div>` : ''}
                     `;
                     workspace.appendChild(el);
@@ -482,7 +704,7 @@
                     <div class="display-view">
                         <div class="disp-name">${escapeHtml(block.location) || 'Stop'}</div>
                         <div class="disp-date">${escapeHtml(block.datetime) || 'Set Date'}</div>
-                        ${block.departdate ? `<div class="disp-date" style="color:#2b6cb0">🛫 ${escapeHtml(block.departdate)}</div>` : ''}
+                        ${block.departdate ? `<div class="disp-date" style="color:var(--primary)">🛫 ${escapeHtml(block.departdate)}</div>` : ''}
                     </div>
                     <div class="edit-view">
                         <input class="block-field location-name" value="${escapeHtml(block.location)}" placeholder="Location Name" onchange="updateBlock(${block.id}, 'location', this.value)">
@@ -494,7 +716,7 @@
                         <div class="block-actions">
                             <span onclick="connectNext(${block.id}, 'main'); event.stopPropagation();">+ Next</span>
                             <span onclick="connectNext(${block.id}, 'alt'); event.stopPropagation();">+ Alt</span>
-                            <span class="link-span" onclick="startManualLink(${block.id}); event.stopPropagation();">🔗 Link Mode</span>
+                            <span class="link-span" onclick="startManualLink(${block.id}); event.stopPropagation();">🔗 Connect</span>
                             <span class="del-span" onclick="deleteBlock(${block.id}); event.stopPropagation();">Delete</span>
                         </div>
                     </div>
@@ -592,7 +814,7 @@
 
         function startManualLink(fromId) {
             linkingSourceId = fromId;
-            alert("Link Mode Active! Click on any destination block to draw your connection line.");
+            alert("Connect mode is on! Click the stop you want to connect to.");
             render();
         }
 
@@ -820,6 +1042,8 @@
             }, 100);
         }
 
+        initTheme();
+        initHelp();
         loadSample();
     </script>
 </body>

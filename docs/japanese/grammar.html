@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grammar — Nihongo Quest</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <a class="logo" href="index.html"><span class="torii">⛩️</span>
+      <div>Nihongo Quest<br><small>にほんごクエスト</small></div>
+    </a>
+    <div class="header-right">
+      <span class="chip" id="streakChip" title="Daily streak">🔥 0</span>
+      <span class="chip" id="xpChip" title="Total XP">✨ 0 XP</span>
+      <button class="icon-btn" id="themeBtn" title="Toggle light/dark">◐</button>
+    </div>
+  </header>
+
+  <section class="view active">
+    <h2 class="view-title">📐 Grammar</h2>
+    <p class="view-sub">Patterns you can plug any verb into — browse with audio, then drill yourself.</p>
+
+    <div id="gramBrowse">
+      <div class="controls-row">
+        <div class="seg" id="secSeg"></div>
+        <button class="btn small" id="drillBtn">🥁 Drill me</button>
+      </div>
+      <div id="gramSections"></div>
+    </div>
+
+    <div id="drillStage" style="display:none"></div>
+  </section>
+</div>
+
+<nav>
+  <a href="index.html#home"><span class="nav-ico">⛩️</span>Home</a>
+  <a href="index.html#learn"><span class="nav-ico">🎴</span>Learn</a>
+  <a href="index.html#quiz"><span class="nav-ico">🧠</span>Quiz</a>
+  <a href="index.html#typing"><span class="nav-ico">⌨️</span>Typing</a>
+  <a href="phrases.html"><span class="nav-ico">🗣️</span>Phrases</a>
+  <a href="grammar.html" class="active"><span class="nav-ico">📐</span>Grammar</a>
+  <a href="index.html#data"><span class="nav-ico">💾</span>Data</a>
+</nav>
+
+<div id="toasts"></div>
+
+<script src="data.js"></script>
+<script src="core.js"></script>
+<script>
+"use strict";
+
+/* =====================================================================
+   BROWSE — sections of pattern cards
+   ===================================================================== */
+$("#secSeg").innerHTML = `<button data-mode="all" class="active">All</button>` +
+  GRAMMAR.map(s => `<button data-mode="${s.id}">${s.title.split(" — ")[0]}</button>`).join("");
+const getSec = segControl("secSeg");
+$("#secSeg").addEventListener("click", renderSections);
+
+function exRow(ex) {
+  const [jp, r, en] = ex;
+  return `<div class="g-ex">
+    <div class="e-text">
+      <div class="e-jp">${jp}</div>
+      <div class="e-read">${r}</div>
+      <div class="e-en">${en}</div>
+    </div>
+    <button class="p-play" data-jp="${jp}" data-r="${r}" title="Listen">🔊</button>
+  </div>`;
+}
+function renderSections() {
+  const sec = getSec();
+  const sections = sec === "all" ? GRAMMAR : GRAMMAR.filter(s => s.id === sec);
+  $("#gramSections").innerHTML = sections.map(s => `
+    <div class="gram-section">
+      <div class="section-label">${s.title}</div>
+      <p class="view-sub" style="margin-bottom:10px">${s.sub}</p>
+      <div class="gram-grid">
+        ${s.items.map(it => `
+          <div class="gram-card">
+            <div class="g-pattern">${it.p}</div>
+            <div class="g-en">${it.en}</div>
+            <span class="g-form">${it.f}</span>
+            ${it.ex.map(exRow).join("")}
+          </div>`).join("")}
+      </div>
+    </div>`).join("");
+  $$("#gramSections .p-play").forEach(btn => btn.addEventListener("click", () => {
+    speakText(btn.dataset.jp, btn.dataset.r);
+    saveState();
+  }));
+}
+
+/* =====================================================================
+   DRILL — English prompt → recall the Japanese pattern
+   ===================================================================== */
+let dr = null;
+$("#drillBtn").addEventListener("click", () => {
+  const sec = getSec();
+  const sections = sec === "all" ? GRAMMAR : GRAMMAR.filter(s => s.id === sec);
+  const items = sections.flatMap(s => s.items);
+  dr = { queue: shuffled(items).slice(0, 12), i: 0, done: 0, revealed: false };
+  $("#gramBrowse").style.display = "none";
+  $("#drillStage").style.display = "";
+  renderDrill();
+});
+
+function renderDrill() {
+  const it = dr.queue[dr.i];
+  if (!it) return finishDrill();
+  dr.revealed = false;
+  const [jp, r, en] = it.ex[0];
+  $("#drillStage").innerHTML = `
+    <div class="flash-stage">
+      <div class="flash-meta"><span>${dr.i + 1} / ${dr.queue.length}</span><span>📐 grammar drill</span></div>
+      <div class="flashcard" id="drillCard">
+        <div class="flash-meaning" style="font-size:1.15rem">How do you say…</div>
+        <div class="flash-word" style="font-size:1.9rem">“${it.en}”</div>
+        <div id="drillBack" style="display:none">
+          <div class="flash-reading" style="font-size:1.8rem">${it.p}</div>
+          <div class="flash-meaning" style="margin-top:6px">${jp}<br><span style="color:var(--accent)">${r}</span><br>${en}</div>
+        </div>
+        <div class="flash-hint" id="drillHint">tap to reveal</div>
+      </div>
+      <div class="grade-row two-col" id="drillGrades" style="visibility:hidden">
+        <button class="g-again">😵 Still fuzzy<small>see it again</small></button>
+        <button class="g-easy">😎 Got it<small>+4 XP</small></button>
+      </div>
+      <div style="text-align:center; margin-top:12px"><button class="btn small ghost" id="drillSpeak">🔊 Listen</button></div>
+    </div>`;
+  $("#drillCard").addEventListener("click", () => {
+    if (dr.revealed) return;
+    dr.revealed = true;
+    $("#drillBack").style.display = "";
+    $("#drillHint").style.display = "none";
+    $("#drillGrades").style.visibility = "visible";
+    speakText(jp, r);
+  });
+  $("#drillSpeak").addEventListener("click", e => { e.stopPropagation(); speakText(jp, r); });
+  $("#drillGrades .g-again").addEventListener("click", () => {
+    dr.queue.push(it);                    // comes back this round
+    dr.i++; renderDrill();
+  });
+  $("#drillGrades .g-easy").addEventListener("click", () => {
+    dr.done++; state.stats.drills++;
+    gainXP(4);
+    dr.i++; renderDrill();
+  });
+}
+function finishDrill() {
+  checkBadges(); saveState();
+  $("#drillStage").innerHTML = `<div class="card result-hero">
+    <div class="r-emoji">📐</div>
+    <div class="r-big">${dr.done}</div>
+    <div class="r-line">patterns drilled — try using one in a sentence today!</div>
+    <div style="margin-top:20px; display:flex; gap:10px; justify-content:center">
+      <button class="btn" id="drAgain">Drill again</button>
+      <button class="btn ghost" id="drBack">Back to patterns</button>
+    </div></div>`;
+  $("#drAgain").addEventListener("click", () => $("#drillBtn").click());
+  $("#drBack").addEventListener("click", () => {
+    $("#drillStage").style.display = "none";
+    $("#gramBrowse").style.display = "";
+  });
+}
+
+renderSections();
+</script>
+</body>
+</html>

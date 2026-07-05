@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phrases — Nihongo Quest</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <a class="logo" href="index.html"><span class="torii">⛩️</span>
+      <div>Nihongo Quest<br><small>にほんごクエスト</small></div>
+    </a>
+    <div class="header-right">
+      <span class="chip" id="streakChip" title="Daily streak">🔥 0</span>
+      <span class="chip" id="xpChip" title="Total XP">✨ 0 XP</span>
+      <button class="icon-btn" id="themeBtn" title="Toggle light/dark">◐</button>
+    </div>
+  </header>
+
+  <section class="view active">
+    <h2 class="view-title">🗣️ Phrases</h2>
+    <p class="view-sub">Everyday expressions — listen, read, then test yourself in practice mode.</p>
+
+    <div id="phraseBrowse">
+      <div class="controls-row">
+        <div class="seg" id="catSeg">
+          <button data-mode="all" class="active">All</button>
+          <button data-mode="greet">👋 Greetings</button>
+          <button data-mode="travel">🧳 Getting around</button>
+          <button data-mode="talk">💬 Conversation</button>
+        </div>
+        <button class="btn small" id="practiceBtn">🎧 Practice typing</button>
+      </div>
+      <div class="card phrase-list" id="phraseList"></div>
+    </div>
+
+    <div id="practiceStage" style="display:none"></div>
+  </section>
+</div>
+
+<nav>
+  <a href="index.html#home"><span class="nav-ico">⛩️</span>Home</a>
+  <a href="index.html#learn"><span class="nav-ico">🎴</span>Learn</a>
+  <a href="index.html#quiz"><span class="nav-ico">🧠</span>Quiz</a>
+  <a href="index.html#typing"><span class="nav-ico">⌨️</span>Typing</a>
+  <a href="phrases.html" class="active"><span class="nav-ico">🗣️</span>Phrases</a>
+  <a href="grammar.html"><span class="nav-ico">📐</span>Grammar</a>
+  <a href="index.html#data"><span class="nav-ico">💾</span>Data</a>
+</nav>
+
+<div id="toasts"></div>
+
+<script src="data.js"></script>
+<script src="core.js"></script>
+<script>
+"use strict";
+
+/* =====================================================================
+   BROWSE
+   ===================================================================== */
+const getCat = segControl("catSeg");
+$("#catSeg").addEventListener("click", renderList);
+
+function renderList() {
+  const cat = getCat();
+  const list = cat === "all" ? PHRASES : PHRASES.filter(p => p.cat === cat);
+  $("#phraseList").innerHTML = list.map((p, i) => `
+    <div class="phrase-row">
+      <div class="p-text">
+        <div class="p-jp">${p.k}</div>
+        <div class="p-read">${p.r}</div>
+        <div class="p-en">${p.m}</div>
+      </div>
+      <button class="p-play" data-i="${i}" title="Listen">🔊</button>
+    </div>`).join("");
+  $$("#phraseList .p-play").forEach(btn => btn.addEventListener("click", () => {
+    speakWord(list[+btn.dataset.i]);
+    saveState();
+  }));
+}
+
+/* =====================================================================
+   PRACTICE — listen & type the phrase
+   ===================================================================== */
+let pr = null;
+$("#practiceBtn").addEventListener("click", () => {
+  const cat = getCat();
+  const pool = cat === "all" ? PHRASES : PHRASES.filter(p => p.cat === cat);
+  pr = { items: shuffled(pool).slice(0, 8), i: 0, correct: 0, attempts: 0, misses: [], solved: false, tries: 0 };
+  $("#phraseBrowse").style.display = "none";
+  $("#practiceStage").style.display = "";
+  renderPractice();
+});
+
+function renderPractice() {
+  const p = pr.items[pr.i];
+  if (!p) return finishPractice();
+  pr.solved = false; pr.tries = 0;
+  $("#practiceStage").innerHTML = `
+    <div class="type-hud">
+      <span>${pr.i + 1} / ${pr.items.length}</span>
+      <span>✅ ${pr.correct}</span>
+    </div>
+    <div class="card type-stage">
+      <div class="type-target small"><span class="t-meaning" style="font-size:1.05rem">“${p.m}”</span></div>
+      <div class="type-audio-row">
+        <button class="btn small ghost" id="prPlay">🔊 Listen</button>
+        <button class="btn small ghost" id="prSlow">🐢 Slow</button>
+        <button class="btn small ghost" id="prShow">👀 Show Japanese</button>
+      </div>
+      <input class="kana-input long" id="prInput" autocomplete="off" autocapitalize="off" spellcheck="false"
+        placeholder="type the phrase in romaji…">
+      <div class="type-feedback" id="prFeedback"></div>
+      <div class="type-tools">
+        <button class="btn small ghost" id="prSkip">Skip ➟</button>
+      </div>
+    </div>`;
+  const input = $("#prInput");
+  wireKanaInput(input);
+  input.focus();
+  speakWord(p);
+  $("#prPlay").addEventListener("click", () => { speakWord(p); input.focus(); });
+  $("#prSlow").addEventListener("click", () => { speakWord(p, 0.6); input.focus(); });
+  $("#prShow").addEventListener("click", () => {
+    $("#prFeedback").innerHTML = `<span class="fb-info">${p.k}</span>`;
+    input.focus();
+  });
+  input.addEventListener("keydown", e => {
+    if (e.key !== "Enter" || pr.solved) return;
+    const typed = finalizeKana(input.value).replace(/[、。！？\s]/g, "");
+    if (!typed) return;
+    input.value = typed;
+    const target = p.r.replace(/[、。！？\s]/g, "");
+    pr.attempts++;
+    if (typed === target) {
+      pr.solved = true; pr.correct++;
+      state.stats.phrases++;
+      input.classList.add("flash-ok"); sfx("ok");
+      $("#prFeedback").innerHTML = `<span class="fb-ok">⭕ ${p.k} — ${p.m}　+15 XP</span>`;
+      gainXP(15);
+      saveState();
+      setTimeout(() => { pr.i++; renderPractice(); }, 1200);
+    } else {
+      pr.tries++;
+      input.classList.remove("flash-bad"); void input.offsetWidth;
+      input.classList.add("flash-bad"); sfx("bad");
+      $("#prFeedback").innerHTML = pr.tries >= 3
+        ? `<span class="fb-bad">✕ answer: ${p.r}（${p.k}） — type it once to continue</span>`
+        : `<span class="fb-bad">✕ not quite — listen again (${3 - pr.tries} tries left)</span>`;
+      if (pr.tries < 3) speakWord(p, 0.75);
+      saveState();
+    }
+  });
+  $("#prSkip").addEventListener("click", () => {
+    pr.misses.push(p);
+    $("#prFeedback").innerHTML = `<span class="fb-bad">answer: ${p.r}（${p.k}）</span>`;
+    speakWord(p);
+    setTimeout(() => { pr.i++; renderPractice(); }, 1500);
+  });
+}
+function finishPractice() {
+  checkBadges(); saveState();
+  const acc = pr.attempts ? Math.round(100 * pr.correct / pr.attempts) : 0;
+  $("#practiceStage").innerHTML = `<div class="card result-hero">
+    <div class="r-emoji">${acc >= 90 ? "🎤" : acc >= 60 ? "🗣️" : "💬"}</div>
+    <div class="r-big">${pr.correct}/${pr.items.length}</div>
+    <div class="r-line">${acc >= 90 ? "Sounding like a local!" : "Phrases stick with repetition — go again!"}</div>
+    ${pr.misses.length ? `<ul class="miss-list"><li style="font-weight:800;color:var(--ink-1)">Phrases to revisit:</li>
+      ${pr.misses.map(p => `<li>・ ${p.k}（${p.r}）${p.m}</li>`).join("")}</ul>` : ""}
+    <div style="margin-top:20px; display:flex; gap:10px; justify-content:center">
+      <button class="btn" id="prAgain">Practice again</button>
+      <button class="btn ghost" id="prBack">Back to phrase book</button>
+    </div></div>`;
+  $("#prAgain").addEventListener("click", () => $("#practiceBtn").click());
+  $("#prBack").addEventListener("click", () => {
+    $("#practiceStage").style.display = "none";
+    $("#phraseBrowse").style.display = "";
+  });
+}
+
+renderList();
+</script>
+</body>
+</html>

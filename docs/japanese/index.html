@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nihongo Quest — Japanese Learning</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <a class="logo" href="index.html"><span class="torii">⛩️</span>
+      <div>Nihongo Quest<br><small>にほんごクエスト</small></div>
+    </a>
+    <div class="header-right">
+      <span class="chip" id="streakChip" title="Daily streak">🔥 0</span>
+      <span class="chip" id="xpChip" title="Total XP">✨ 0 XP</span>
+      <button class="icon-btn" id="themeBtn" title="Toggle light/dark">◐</button>
+    </div>
+  </header>
+
+  <!-- ============ HOME ============ -->
+  <section class="view active" id="view-home">
+    <div class="card level-card">
+      <div class="level-head">
+        <span class="level-num" id="homeLevel">Lv.1</span>
+        <span class="level-title" id="homeTitle">見習い · Apprentice</span>
+        <span class="level-xp" id="homeXpLabel">0 / 80 XP</span>
+      </div>
+      <div class="meter"><span id="homeXpMeter" style="width:0%"></span></div>
+    </div>
+
+    <div class="tile-row">
+      <div class="tile"><div class="t-label">Words learned</div><div class="t-value" id="tileWords">0</div><div class="t-sub" id="tileWordsSub">of 0 in deck</div></div>
+      <div class="tile"><div class="t-label">Due for review</div><div class="t-value" id="tileDue">0</div><div class="t-sub">flashcards waiting</div></div>
+      <div class="tile"><div class="t-label">Typing accuracy</div><div class="t-value" id="tileTypeAcc">–</div><div class="t-sub" id="tileTypeSub">0 words typed</div></div>
+      <div class="tile"><div class="t-label">Best combo</div><div class="t-value" id="tileCombo">0<span class="t-unit">🔥</span></div><div class="t-sub">typing streak</div></div>
+    </div>
+
+    <div class="quick-actions">
+      <button class="qa-btn" data-goto="learn"><span class="qa-ico">🎴</span><div class="qa-name">Flashcards</div><div class="qa-desc">Learn &amp; review words</div></button>
+      <button class="qa-btn" data-goto="quiz"><span class="qa-ico">🧠</span><div class="qa-name">JLPT Quiz</div><div class="qa-desc">Meaning · reading · listening</div></button>
+      <button class="qa-btn" data-goto="typing"><span class="qa-ico">⌨️</span><div class="qa-name">Typing Dojo</div><div class="qa-desc">Type what you hear</div></button>
+      <a class="qa-btn" href="phrases.html"><span class="qa-ico">🗣️</span><div class="qa-name">Phrases</div><div class="qa-desc">Everyday expressions + practice</div></a>
+      <a class="qa-btn" href="grammar.html"><span class="qa-ico">📐</span><div class="qa-name">Grammar</div><div class="qa-desc">I go · want to go · have to go…</div></a>
+    </div>
+
+    <div class="section-label">JLPT progress</div>
+    <div class="card jlpt-meters" id="jlptMeters"></div>
+
+    <div class="section-label">Badges</div>
+    <div class="badge-grid" id="badgeGrid"></div>
+  </section>
+
+  <!-- ============ LEARN ============ -->
+  <section class="view" id="view-learn">
+    <h2 class="view-title">🎴 Flashcards</h2>
+    <p class="view-sub">Spaced repetition — cards come back right before you forget them.</p>
+    <div class="controls-row">
+      <div class="seg" id="learnLevelSeg">
+        <button data-lv="N5" class="active">N5</button>
+        <button data-lv="N4">N4</button>
+        <button data-lv="N3">N3</button>
+        <button data-lv="ALL">All</button>
+      </div>
+      <button class="btn small" id="learnStartBtn">Start session</button>
+      <button class="btn small ghost" id="cramToggle" title="Cards keep coming back this session until you grade them Easy">🔁 Until easy: Off</button>
+    </div>
+    <div class="flash-stage" id="flashStage">
+      <div class="empty-state"><div class="big">🌸</div>Pick a level and start a session.<br>New words and due reviews are queued automatically.</div>
+    </div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section class="view" id="view-quiz">
+    <h2 class="view-title">🧠 JLPT Quiz</h2>
+    <p class="view-sub">Ten questions. Meaning, kanji reading, or pure listening.</p>
+    <div id="quizSetup">
+      <div class="controls-row">
+        <div class="seg" id="quizLevelSeg">
+          <button data-lv="N5" class="active">N5</button>
+          <button data-lv="N4">N4</button>
+          <button data-lv="N3">N3</button>
+          <button data-lv="ALL">All</button>
+        </div>
+        <div class="seg" id="quizModeSeg">
+          <button data-mode="meaning" class="active">💬 Meaning</button>
+          <button data-mode="reading">🈶 Reading</button>
+          <button data-mode="listening">👂 Listening</button>
+        </div>
+      </div>
+      <button class="btn" id="quizStartBtn">Start quiz</button>
+    </div>
+    <div id="quizStage" style="display:none"></div>
+  </section>
+
+  <!-- ============ TYPING ============ -->
+  <section class="view" id="view-typing">
+    <h2 class="view-title">⌨️ Typing Dojo</h2>
+    <p class="view-sub">Type in romaji — it turns into kana as you type. No Japanese keyboard needed.</p>
+    <div id="typeSetup">
+      <div class="controls-row">
+        <div class="seg" id="typeLevelSeg">
+          <button data-lv="N5" class="active">N5</button>
+          <button data-lv="N4">N4</button>
+          <button data-lv="N3">N3</button>
+          <button data-lv="ALL">All</button>
+        </div>
+        <div class="seg" id="typeModeSeg">
+          <button data-mode="listen" class="active">👂 Type what you hear</button>
+          <button data-mode="read">🈶 Type the reading</button>
+        </div>
+      </div>
+      <button class="btn" id="typeStartBtn">Enter the dojo</button>
+    </div>
+    <div id="typeStage" style="display:none"></div>
+    <details class="ime-help" id="imeHelp">
+        <summary>Romaji → kana cheat sheet</summary>
+        <div class="ime-table">
+          <table>
+            <tr><th></th><th>a</th><th>i</th><th>u</th><th>e</th><th>o</th><th colspan="3">combos</th></tr>
+            <tr><th>–</th><td>あ</td><td>い</td><td>う</td><td>え</td><td>お</td><td colspan="3" rowspan="2">double consonant → っ<br>(kitte → きって)</td></tr>
+            <tr><th>k</th><td>か</td><td>き</td><td>く</td><td>け</td><td>こ</td></tr>
+            <tr><th>s</th><td>さ</td><td>し shi</td><td>す</td><td>せ</td><td>そ</td><td>sha しゃ</td><td>shu しゅ</td><td>sho しょ</td></tr>
+            <tr><th>t</th><td>た</td><td>ち chi</td><td>つ tsu</td><td>て</td><td>と</td><td>cha ちゃ</td><td>chu ちゅ</td><td>cho ちょ</td></tr>
+            <tr><th>n</th><td>な</td><td>に</td><td>ぬ</td><td>ね</td><td>の</td><td colspan="3">ん → nn (honn → ほん)</td></tr>
+            <tr><th>h</th><td>は</td><td>ひ</td><td>ふ fu</td><td>へ</td><td>ほ</td><td>hya ひゃ</td><td>hyu ひゅ</td><td>hyo ひょ</td></tr>
+            <tr><th>m</th><td>ま</td><td>み</td><td>む</td><td>め</td><td>も</td><td>kya きゃ</td><td>kyu きゅ</td><td>kyo きょ</td></tr>
+            <tr><th>y / r / w</th><td>や ら わ</td><td>り</td><td>ゆ る</td><td>れ</td><td>よ ろ を(wo)</td><td>ja じゃ</td><td>ju じゅ</td><td>jo じょ</td></tr>
+            <tr><th>voiced</th><td colspan="5">g が · z ざ (ji じ) · d だ · b ば · p ぱ</td><td colspan="3">long mark ー → "-" (koohii or ko-hi-)</td></tr>
+          </table>
+        </div>
+      </details>
+  </section>
+
+  <!-- ============ DATA ============ -->
+  <section class="view" id="view-data">
+    <h2 class="view-title">💾 Progress &amp; Settings</h2>
+    <p class="view-sub">Progress autosaves in this browser. Export a JSON file to back up or move to another device.</p>
+    <div class="card">
+      <div class="data-row">
+        <div class="d-text"><div class="d-title">Export progress</div><div class="d-desc">Save everything (XP, streak, card schedule, stats) as a JSON file — you pick the folder and filename.</div></div>
+        <button class="btn small" id="exportBtn">⬇️ Export JSON</button>
+      </div>
+      <div class="data-row">
+        <div class="d-text"><div class="d-title">Import progress</div><div class="d-desc">Load a previously exported file. Replaces current progress.</div></div>
+        <button class="btn small ghost" id="importBtn">⬆️ Import JSON</button>
+        <input type="file" id="importFile" accept=".json,application/json" style="display:none">
+      </div>
+      <div class="data-row">
+        <div class="d-text"><div class="d-title">Sound effects</div><div class="d-desc">Chimes and buzzes for answers and level-ups.</div></div>
+        <button class="btn small ghost" id="soundBtn">🔊 On</button>
+      </div>
+      <div class="data-row">
+        <div class="d-text"><div class="d-title">Speech speed</div><div class="d-desc">How fast Japanese audio is spoken.</div></div>
+        <input type="range" id="rateSlider" min="0.5" max="1.2" step="0.05" value="0.9">
+        <span id="rateLabel" style="font-weight:700; font-size:0.85rem;">0.9×</span>
+      </div>
+      <div class="data-row">
+        <div class="d-text"><div class="d-title">Reset everything</div><div class="d-desc">Wipe all progress in this browser. Export first if you might regret it!</div></div>
+        <button class="btn small danger" id="resetBtn">Reset</button>
+      </div>
+    </div>
+    <p class="view-sub" style="margin-top:14px" id="voiceStatus"></p>
+  </section>
+</div>
+
+<nav>
+  <button data-view="home" class="active"><span class="nav-ico">⛩️</span>Home</button>
+  <button data-view="learn"><span class="nav-ico">🎴</span>Learn</button>
+  <button data-view="quiz"><span class="nav-ico">🧠</span>Quiz</button>
+  <button data-view="typing"><span class="nav-ico">⌨️</span>Typing</button>
+  <a href="phrases.html"><span class="nav-ico">🗣️</span>Phrases</a>
+  <a href="grammar.html"><span class="nav-ico">📐</span>Grammar</a>
+  <button data-view="data"><span class="nav-ico">💾</span>Data</button>
+</nav>
+
+<div id="toasts"></div>
+
+<script src="data.js"></script>
+<script src="core.js"></script>
+<script>
+"use strict";
+
+/* =====================================================================
+   VIEW SWITCHING (hash-routed so other pages can deep-link)
+   ===================================================================== */
+function showView(name) {
+  $$(".view").forEach(v => v.classList.toggle("active", v.id === "view-" + name));
+  $$("nav button").forEach(b => b.classList.toggle("active", b.dataset.view === name));
+  if (name === "home") renderHome();
+  history.replaceState(null, "", "#" + name);
+  window.scrollTo({ top: 0 });
+}
+$$("nav button").forEach(b => b.addEventListener("click", () => showView(b.dataset.view)));
+$$("button.qa-btn").forEach(b => b.addEventListener("click", () => showView(b.dataset.goto)));
+
+/* =====================================================================
+   HOME
+   ===================================================================== */
+function renderHome() {
+  renderHeader();
+  const li = levelInfo(state.xp);
+  $("#homeLevel").textContent = "Lv." + li.lv;
+  $("#homeTitle").textContent = li.title;
+  $("#homeXpLabel").textContent = `${li.into} / ${li.need} XP`;
+  $("#homeXpMeter").style.width = Math.min(100, (li.into / li.need) * 100) + "%";
+
+  const learned = WORDS.filter(w => isLearned(w.id)).length;
+  $("#tileWords").textContent = learned;
+  $("#tileWordsSub").textContent = `of ${WORDS.length} in deck`;
+  $("#tileDue").textContent = dueCards().length;
+  const t = state.stats;
+  $("#tileTypeAcc").textContent = t.typed ? Math.round(100 * t.typedCorrect / t.typed) + "%" : "–";
+  $("#tileTypeSub").textContent = `${t.typed} words typed`;
+  $("#tileCombo").innerHTML = `${state.bestCombo}<span class="t-unit">🔥</span>`;
+
+  $("#jlptMeters").innerHTML = LEVELS.map(lv => {
+    const total = wordsOf(lv).length, got = learnedCount(lv);
+    const pct = total ? Math.round(100 * got / total) : 0;
+    return `<div class="jlpt-row ${lv.toLowerCase()}">
+      <div class="m-head"><span>JLPT ${lv}</span><span class="m-count">${got} / ${total} words · ${pct}%</span></div>
+      <div class="meter"><span style="width:${pct}%"></span></div></div>`;
+  }).join("");
+
+  $("#badgeGrid").innerHTML = BADGES.map(b => {
+    const got = state.badges.includes(b.id);
+    return `<div class="badge ${got ? "" : "locked"}" title="${b.desc}">
+      <div class="b-ico">${b.ico}</div><div class="b-name">${b.name}</div><div class="b-desc">${b.desc}</div></div>`;
+  }).join("");
+}
+
+/* =====================================================================
+   LEARN — flashcards
+   ===================================================================== */
+const learnLevel = segControl("learnLevelSeg");
+let learnQueue = [], learnIdx = 0, learnRevealed = false, learnDone = 0, learnSRSGraded = new Set();
+
+$("#cramToggle").addEventListener("click", () => {
+  state.settings.cram = !state.settings.cram;
+  saveState(); syncSettingsUI();
+});
+
+$("#learnStartBtn").addEventListener("click", startLearn);
+function startLearn() {
+  const pool = wordsOf(learnLevel());
+  const due = pool.filter(w => state.srs[w.id] && state.srs[w.id].d <= Date.now());
+  const fresh = shuffled(pool.filter(w => !state.srs[w.id])).slice(0, 10);
+  learnSRSGraded = new Set();
+  learnQueue = [...due, ...fresh];
+  if (!learnQueue.length) {
+    $("#flashStage").innerHTML = `<div class="empty-state"><div class="big">🎉</div>
+      All caught up at this level — nothing due and no new cards.<br>Try another level or the Typing Dojo!</div>`;
+    return;
+  }
+  learnQueue = shuffled(learnQueue);
+  learnIdx = 0; learnDone = 0;
+  renderFlash();
+}
+function renderFlash() {
+  if (learnIdx >= learnQueue.length) {
+    $("#flashStage").innerHTML = `<div class="card result-hero">
+      <div class="r-emoji">🌟</div><div class="r-big">${learnDone}</div>
+      <div class="r-line">cards reviewed — nice work!</div>
+      <div style="margin-top:18px"><button class="btn" onclick="startLearn()">Another round</button></div></div>`;
+    return;
+  }
+  const w = learnQueue[learnIdx];
+  learnRevealed = false;
+  const isNew = !state.srs[w.id] || state.srs[w.id].s === 0;
+  $("#flashStage").innerHTML = `
+    <div class="flash-meta"><span>${learnIdx + 1} / ${learnQueue.length}</span><span>${isNew ? "✨ new word" : "🔁 review"}</span></div>
+    <div class="flashcard" id="flashCard">
+      <span class="flash-level-tag">JLPT ${w.lv}</span>
+      <div class="flash-word">${w.k}</div>
+      <div id="flashBack" style="display:none">
+        <div class="flash-reading">${w.r}</div>
+        <div class="flash-meaning">${w.m}</div>
+      </div>
+      <div class="flash-hint" id="flashHint">tap to reveal</div>
+    </div>
+    <div class="grade-row" id="gradeRow" style="visibility:hidden">
+      <button class="g-again">😵 Again<small>&lt; 5 min</small></button>
+      <button class="g-hard">😅 Hard<small>sooner</small></button>
+      <button class="g-good">🙂 Good<small>later</small></button>
+      <button class="g-easy">😎 Easy<small>much later</small></button>
+    </div>
+    <div style="text-align:center; margin-top:12px"><button class="btn small ghost" id="flashSpeak">🔊 Listen</button></div>`;
+  $("#flashCard").addEventListener("click", () => {
+    if (learnRevealed) return;
+    learnRevealed = true;
+    $("#flashBack").style.display = "";
+    $("#flashHint").style.display = "none";
+    $("#gradeRow").style.visibility = "visible";
+    speakWord(w);
+  });
+  $("#flashSpeak").addEventListener("click", e => { e.stopPropagation(); speakWord(w); });
+  const grades = { "g-again": ["again", 1], "g-hard": ["hard", 2], "g-good": ["good", 5], "g-easy": ["easy", 6] };
+  for (const [cls, [g, xp]] of Object.entries(grades)) {
+    $("#gradeRow ." + cls).addEventListener("click", () => {
+      // in cram mode only the first grade of a session counts for scheduling,
+      // so repeating a card can't inflate its long-term interval
+      const firstGrade = !learnSRSGraded.has(w.id);
+      if (firstGrade || !state.settings.cram) srsGrade(w.id, g);
+      learnSRSGraded.add(w.id);
+      state.stats.cards++; learnDone++;
+      const requeue = state.settings.cram ? g !== "easy" : g === "again";
+      if (requeue) learnQueue.push(w);             // see it again this session
+      gainXP(firstGrade ? xp : 1);
+      learnIdx++;
+      renderFlash();
+    });
+  }
+}
+
+/* =====================================================================
+   QUIZ — multiple choice
+   ===================================================================== */
+const quizLevel = segControl("quizLevelSeg");
+const quizMode = segControl("quizModeSeg");
+let quiz = null;
+
+$("#quizStartBtn").addEventListener("click", () => {
+  const pool = wordsOf(quizLevel());
+  const qs = shuffled(pool).slice(0, 10).map(w => {
+    const others = shuffled(pool.filter(o => o !== w)).slice(0, 3);
+    return { w, choices: shuffled([...others, w]), result: null };
+  });
+  quiz = { qs, i: 0, mode: quizMode(), correct: 0 };
+  $("#quizSetup").style.display = "none";
+  $("#quizStage").style.display = "";
+  renderQuiz();
+});
+function renderQuiz() {
+  const q = quiz.qs[quiz.i];
+  if (!q) return finishQuiz();
+  const w = q.w, mode = quiz.mode;
+  const bar = quiz.qs.map((qq, idx) =>
+    `<span class="${qq.result === true ? "done-ok" : qq.result === false ? "done-bad" : idx === quiz.i ? "current" : ""}"></span>`).join("");
+  const prompt = { meaning: "What does this mean?", reading: "How is this read?", listening: "What did you hear?" }[mode];
+  const wordHtml = mode === "listening"
+    ? `<button class="listen-big" id="quizPlay" title="Play again">🔊</button>`
+    : `<div class="quiz-word">${w.k}</div>`;
+  const choiceText = c => mode === "meaning" ? c.m : mode === "reading" ? c.r : `${c.k} — ${c.m}`;
+  $("#quizStage").innerHTML = `
+    <div class="quiz-progress">${bar}</div>
+    <div class="card quiz-q">
+      <div class="quiz-prompt">${prompt}</div>
+      ${wordHtml}
+      <div class="quiz-choices" id="quizChoices">
+        ${q.choices.map((c, ci) => `<button data-ci="${ci}">${choiceText(c)}</button>`).join("")}
+      </div>
+    </div>`;
+  if (mode === "listening") {
+    $("#quizPlay").addEventListener("click", () => speakWord(w));
+    speakWord(w);
+  }
+  $$("#quizChoices button").forEach(btn => btn.addEventListener("click", () => {
+    if (q.result !== null) return;
+    const picked = q.choices[+btn.dataset.ci];
+    q.result = picked === w;
+    $$("#quizChoices button").forEach((b, ci) => {
+      b.disabled = true;
+      if (q.choices[ci] === w) b.classList.add("correct");
+      else if (b === btn && !q.result) b.classList.add("wrong");
+    });
+    state.stats.quizQ++;
+    if (q.result) { quiz.correct++; state.stats.quizCorrect++; sfx("ok"); gainXP(10); }
+    else { sfx("bad"); saveState(); }
+    if (mode !== "listening") speakWord(w);
+    setTimeout(() => { quiz.i++; renderQuiz(); }, q.result ? 900 : 1700);
+  }));
+}
+function finishQuiz() {
+  state.stats.quizzes++;
+  const perfect = quiz.correct === quiz.qs.length;
+  if (perfect) { state.stats.perfect++; gainXP(30); confetti(); }
+  checkBadges(); saveState();
+  const pct = Math.round(100 * quiz.correct / quiz.qs.length);
+  $("#quizStage").innerHTML = `<div class="card result-hero">
+    <div class="r-emoji">${perfect ? "🏆" : pct >= 70 ? "🌟" : "💪"}</div>
+    <div class="r-big">${quiz.correct}/${quiz.qs.length}</div>
+    <div class="r-line">${perfect ? "PERFECT! +30 bonus XP" : pct >= 70 ? "Great run!" : "Keep going — reviews make it stick."}</div>
+    <div class="result-stats">
+      <div><div class="rs-v">${pct}%</div><div class="rs-l">score</div></div>
+      <div><div class="rs-v">+${quiz.correct * 10 + (perfect ? 30 : 0)}</div><div class="rs-l">XP</div></div>
+    </div>
+    <div style="margin-top:20px; display:flex; gap:10px; justify-content:center">
+      <button class="btn" id="quizAgain">Play again</button>
+      <button class="btn ghost" id="quizBack">Change settings</button>
+    </div></div>`;
+  $("#quizAgain").addEventListener("click", () => { $("#quizStartBtn").click(); });
+  $("#quizBack").addEventListener("click", () => { $("#quizStage").style.display = "none"; $("#quizSetup").style.display = ""; });
+}
+
+/* =====================================================================
+   TYPING DOJO
+   ===================================================================== */
+const typeLevel = segControl("typeLevelSeg");
+const typeMode = segControl("typeModeSeg");
+let ty = null;
+
+$("#typeStartBtn").addEventListener("click", () => {
+  const pool = wordsOf(typeLevel());
+  const words = shuffled(pool).slice(0, 10);
+  ty = { words, i: 0, mode: typeMode(), combo: 0, best: 0, correct: 0, attempts: 0, misses: [], startAt: Date.now(), solved: false };
+  $("#typeSetup").style.display = "none";
+  $("#typeStage").style.display = "";
+  renderType();
+});
+
+function renderType() {
+  const w = ty.words[ty.i];
+  if (!w) return finishType();
+  ty.solved = false; ty.tries = 0;
+  const target = ty.mode === "listen"
+    ? `<button class="listen-big" id="tyPlay" title="Play again">🔊</button>`
+    : `<div class="type-target">${w.k}<span class="t-meaning">${w.m}</span></div>`;
+  $("#typeStage").innerHTML = `
+    <div class="type-hud">
+      <span>${ty.i + 1} / ${ty.words.length}</span>
+      <span class="combo-flame">${ty.combo > 1 ? "🔥 combo ×" + ty.combo : ""}</span>
+      <span>✅ ${ty.correct}</span>
+    </div>
+    <div class="card type-stage">
+      ${target}
+      <div class="type-audio-row">
+        ${ty.mode === "listen" ? `<button class="btn small ghost" id="tySlow">🐢 Slow</button>
+        <button class="btn small ghost" id="tyHint">💡 Hint</button>` : `<button class="btn small ghost" id="tyListen">🔊 Listen</button>`}
+      </div>
+      <input class="kana-input" id="tyInput" autocomplete="off" autocapitalize="off" spellcheck="false"
+        placeholder="${ty.mode === "listen" ? "type what you hear…" : "type the reading…"}">
+      <div class="type-feedback" id="tyFeedback"></div>
+      <div class="type-tools">
+        <button class="btn small ghost" id="tySkip">Skip ➟</button>
+        <button class="btn small ghost" id="tyKana">⌨️ Kana help</button>
+      </div>
+    </div>`;
+  const input = $("#tyInput");
+  wireKanaInput(input);
+  input.focus();
+  if (ty.mode === "listen") {
+    $("#tyPlay").addEventListener("click", () => { speakWord(w); input.focus(); });
+    $("#tySlow").addEventListener("click", () => { speakWord(w, 0.6); input.focus(); });
+    $("#tyHint").addEventListener("click", () => {
+      $("#tyFeedback").innerHTML = `<span class="fb-info">💡 ${w.m}</span>`;
+      input.focus();
+    });
+    speakWord(w);
+  } else {
+    $("#tyListen").addEventListener("click", () => { speakWord(w); input.focus(); });
+  }
+  input.addEventListener("keydown", e => {
+    if (e.key !== "Enter" || ty.solved) return;
+    const typed = finalizeKana(input.value);
+    if (!typed) return;
+    input.value = typed;
+    ty.attempts++; state.stats.typed++;
+    if (typed === w.r) {
+      ty.solved = true;
+      ty.combo++; ty.best = Math.max(ty.best, ty.combo); ty.correct++;
+      state.stats.typedCorrect++;
+      state.bestCombo = Math.max(state.bestCombo, ty.combo);
+      const bonus = Math.min(ty.combo, 10);
+      const firstTry = ty.tries === 0 ? 5 : 0;
+      input.classList.add("flash-ok"); sfx("ok");
+      $("#tyFeedback").innerHTML = `<span class="fb-ok">⭕ ${w.k}（${w.r}） ${w.m}　+${10 + bonus + firstTry} XP</span>`;
+      gainXP(10 + bonus + firstTry);
+      // typing success also nudges the SRS schedule forward
+      if (state.srs[w.id]) srsGrade(w.id, "good"); else { srsGrade(w.id, "good"); state.stats.cards++; }
+      saveState();
+      setTimeout(() => { ty.i++; renderType(); }, 1100);
+    } else {
+      ty.tries++;
+      ty.combo = 0;
+      input.classList.remove("flash-bad"); void input.offsetWidth;
+      input.classList.add("flash-bad"); sfx("bad");
+      $("#tyFeedback").innerHTML = ty.tries >= 3
+        ? `<span class="fb-bad">✕ answer: ${w.r}（${w.k}） — type it once to continue</span>`
+        : `<span class="fb-bad">✕ not quite — listen again and retry (${3 - ty.tries} tries left)</span>`;
+      if (ty.mode === "listen" && ty.tries < 3) speakWord(w, 0.75);
+      saveState();
+    }
+  });
+  $("#tyKana").addEventListener("click", () => {
+    const d = $("#imeHelp");
+    d.open = !d.open;
+    if (d.open) d.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    input.focus();
+  });
+  $("#tySkip").addEventListener("click", () => {
+    ty.combo = 0;
+    ty.misses.push(w);
+    $("#tyFeedback").innerHTML = `<span class="fb-bad">answer: ${w.r}（${w.k}） ${w.m}</span>`;
+    speakWord(w);
+    setTimeout(() => { ty.i++; renderType(); }, 1400);
+  });
+}
+function finishType() {
+  const secs = Math.max(1, Math.round((Date.now() - ty.startAt) / 1000));
+  const acc = ty.attempts ? Math.round(100 * ty.correct / ty.attempts) : 0;
+  checkBadges(); saveState();
+  $("#typeStage").innerHTML = `<div class="card result-hero">
+    <div class="r-emoji">${acc >= 90 ? "🥷" : acc >= 60 ? "⚔️" : "🥋"}</div>
+    <div class="r-big">${ty.correct}/${ty.words.length}</div>
+    <div class="r-line">${acc >= 90 ? "Ninja-grade typing!" : acc >= 60 ? "Solid form — keep training." : "The dojo rewards persistence."}</div>
+    <div class="result-stats">
+      <div><div class="rs-v">${acc}%</div><div class="rs-l">accuracy</div></div>
+      <div><div class="rs-v">${ty.best}🔥</div><div class="rs-l">best combo</div></div>
+      <div><div class="rs-v">${secs}s</div><div class="rs-l">time</div></div>
+    </div>
+    ${ty.misses.length ? `<ul class="miss-list"><li style="font-weight:800;color:var(--ink-1)">Words to revisit:</li>
+      ${ty.misses.map(w => `<li>・ ${w.k}（${w.r}）${w.m}</li>`).join("")}</ul>` : ""}
+    <div style="margin-top:20px; display:flex; gap:10px; justify-content:center">
+      <button class="btn" id="tyAgain">Train again</button>
+      <button class="btn ghost" id="tyBack">Change settings</button>
+    </div></div>`;
+  $("#tyAgain").addEventListener("click", () => $("#typeStartBtn").click());
+  $("#tyBack").addEventListener("click", () => { $("#typeStage").style.display = "none"; $("#typeSetup").style.display = ""; });
+}
+
+/* =====================================================================
+   DATA — export / import / settings
+   ===================================================================== */
+$("#exportBtn").addEventListener("click", async () => {
+  const data = { ...state, savedAt: new Date().toISOString(), app: "nihongo-quest" };
+  const json = JSON.stringify(data, null, 2);
+  const suggested = `nihongo-quest-progress-${todayStr()}.json`;
+  // File System Access API: real "save as" dialog — user picks folder & name
+  if (window.showSaveFilePicker) {
+    try {
+      const handle = await showSaveFilePicker({
+        suggestedName: suggested,
+        types: [{ description: "JSON file", accept: { "application/json": [".json"] } }]
+      });
+      const writable = await handle.createWritable();
+      await writable.write(json);
+      await writable.close();
+      toast(`⬇️ Saved as ${handle.name}`);
+      return;
+    } catch (err) {
+      if (err && err.name === "AbortError") return;  // user cancelled the dialog
+      // otherwise fall through to the classic download
+    }
+  }
+  const name = prompt("File name for the export:", suggested);
+  if (name === null) return;
+  const blob = new Blob([json], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = name.trim() || suggested;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast("⬇️ Progress exported to your downloads folder");
+});
+$("#importBtn").addEventListener("click", () => $("#importFile").click());
+$("#importFile").addEventListener("change", e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      applyImported(JSON.parse(reader.result), true);
+      saveState(); syncSettingsUI(); renderHome(); showView("home");
+    } catch (err) {
+      toast("⚠️ Couldn't read that file: " + err.message);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = "";
+});
+$("#resetBtn").addEventListener("click", () => {
+  if (!confirm("Really wipe all progress? Consider exporting first.")) return;
+  state = defaultState();
+  saveState(); syncSettingsUI(); renderHome();
+  toast("🧹 Progress reset");
+});
+$("#soundBtn").addEventListener("click", () => {
+  state.settings.sound = !state.settings.sound;
+  saveState(); syncSettingsUI();
+});
+$("#rateSlider").addEventListener("input", e => {
+  state.settings.rate = +e.target.value;
+  $("#rateLabel").textContent = state.settings.rate.toFixed(2).replace(/0$/, "") + "×";
+  saveState();
+});
+$("#rateSlider").addEventListener("change", () => speakWord(WORD_BY_ID["日本"]));
+function syncSettingsUI() {
+  $("#cramToggle").textContent = "🔁 Until easy: " + (state.settings.cram ? "On" : "Off");
+  $("#cramToggle").classList.toggle("ghost", !state.settings.cram);
+  $("#soundBtn").textContent = state.settings.sound ? "🔊 On" : "🔇 Off";
+  $("#rateSlider").value = state.settings.rate;
+  $("#rateLabel").textContent = state.settings.rate.toFixed(2).replace(/0$/, "") + "×";
+}
+
+/* ---------- boot ---------- */
+syncSettingsUI();
+renderHome();
+const startView = location.hash.slice(1);
+if (["home", "learn", "quiz", "typing", "data"].includes(startView)) showView(startView);
+</script>
+</body>
+</html>
