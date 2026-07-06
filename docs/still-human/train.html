@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Centaur Academy — Still Human 2045</title>
+<meta name="description" content="Six drill games that train the six human faculties: attention, volition, grounding, taste, sovereignty, accountability.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .rank-line { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .rank-line h1 { font-size: clamp(1.5rem, 4vw, 2.1rem); }
+  .xp-bar { display: flex; align-items: center; gap: 10px; margin: 10px 0 4px; max-width: 420px; }
+  .xp-bar .meter { flex: 1; }
+  .game-how { margin: 10px 0 4px; font-size: .95rem; }
+  .endcard { text-align: center; padding: 40px 22px; }
+  .endcard .big { font-size: 3rem; }
+  .endcard h2 { margin: 8px 0 4px; }
+  .burst { display: inline-block; animation: pop .5s cubic-bezier(.2,1.6,.4,1) both; }
+  @keyframes pop { from { transform: scale(.2); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .next-row { margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .streak-flame { font-size: .9rem; color: var(--ink-2); }
+  .session-dots { display: flex; gap: 5px; margin-top: 10px; }
+  .session-dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--accent-track); }
+  .session-dots i.hit { background: var(--good); }
+  .session-dots i.miss { background: var(--bad); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="nav">
+    <a class="brand" href="./">Still Human<span class="dot">.</span>2045</a>
+    <div class="links">
+      <a href="./">Home</a>
+      <a href="train.html" class="active">🎓 Centaur Academy</a>
+      <a href="test.html">📋 Entry Exam</a>
+      <a href="roadmap.html">🗺️ Roadmaps</a>
+    </div>
+  </nav>
+
+  <main id="app"></main>
+
+  <p class="footer-note">Centaur Academy · official prep school of the Bureau of Human–AI Integration ·
+    ready? <a href="test.html">sit the Entry Exam</a></p>
+</div>
+
+<script src="data.js"></script>
+<script>
+"use strict";
+
+/* ---------------- persistence ---------------- */
+const KEY = "stillHumanTrain.v1";
+function load() {
+  try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch { return {}; }
+}
+function save(s) { localStorage.setItem(KEY, JSON.stringify(s)); }
+const S = Object.assign({ xp: 0, firstTry: {}, plays: {}, streak: 0, lastDay: "" }, load());
+
+/* daily streak: increments once per distinct day trained */
+function touchStreak() {
+  const today = new Date().toISOString().slice(0, 10);
+  if (S.lastDay === today) return;
+  const yest = new Date(Date.now() - 864e5).toISOString().slice(0, 10);
+  S.streak = (S.lastDay === yest) ? S.streak + 1 : 1;
+  S.lastDay = today;
+  save(S);
+}
+
+/* ---------------- ranks ---------------- */
+const RANKS = [
+  [0,   "Recruit", "🌱"],
+  [80,  "Reader",  "📖"],
+  [200, "Tracer",  "🌍"],
+  [360, "Chooser", "💎"],
+  [560, "Author",  "✍️"],
+  [800, "Centaur", "🏆"]
+];
+function rankFor(xp) {
+  let r = RANKS[0], next = null;
+  for (const R of RANKS) { if (xp >= R[0]) r = R; else { next = R; break; } }
+  return { name: r[1], emoji: r[2], floor: r[0], next };
+}
+
+const dimById = Object.fromEntries(DIMENSIONS.map(d => [d.id, d]));
+const app = document.getElementById("app");
+const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
+
+/* ---------------- home ---------------- */
+function mastery(game) {
+  const hit = game.items.filter((_, i) => S.firstTry[game.id + ":" + i]).length;
+  return Math.round(100 * hit / game.items.length);
+}
+
+function home() {
+  const rk = rankFor(S.xp);
+  const toNext = rk.next ? rk.next[0] - S.xp : 0;
+  const pct = rk.next ? Math.round(100 * (S.xp - rk.floor) / (rk.next[0] - rk.floor)) : 100;
+
+  app.innerHTML = `
+  <div class="fade-in">
+    <span class="chip accent">Centaur Academy · exam prep division</span>
+    <div class="rank-line" style="margin-top:10px">
+      <h1>${rk.emoji} ${rk.name}</h1>
+      ${S.streak > 1 ? `<span class="streak-flame">🔥 ${S.streak}-day streak</span>` : ""}
+    </div>
+    <div class="xp-bar" role="img" aria-label="Experience: ${S.xp} points${rk.next ? ", " + toNext + " to next rank" : ""}">
+      <div class="meter"><i style="width:${pct}%"></i></div>
+      <span class="small">${S.xp} XP${rk.next ? ` · ${toNext} to ${rk.next[1]}` : " · max rank"}</span>
+    </div>
+    <p style="max-width:620px">Six drills, one per faculty on the Entry Exam. Master a drill by
+       answering every case right on the first try — the meters remember. Wrong answers are
+       where the learning is: every option explains itself. Fair warning: some cases test
+       careful reading by burying the deciding detail mid-passage. That's not a trick.
+       That's the curriculum.</p>
+    <div class="spacer"></div>
+    <div class="game-grid">
+      ${GAMES.map(g => {
+        const m = mastery(g);
+        const plays = S.plays[g.id] || 0;
+        return `
+        <button class="game-card" data-game="${g.id}">
+          <span class="g-icon">${g.icon}</span>
+          <div class="g-dim">${dimById[g.dim].name}</div>
+          <h3>${g.title}</h3>
+          <p class="small">${g.items.length} cases · ${plays ? `played ${plays}×` : "new"}</p>
+          <div class="g-meter">
+            <div class="meter" role="img" aria-label="Mastery ${m}%"><i style="width:${m}%"></i></div>
+            <span class="pct">${m}%</span>
+          </div>
+        </button>`;
+      }).join("")}
+    </div>
+  </div>`;
+
+  app.querySelectorAll(".game-card").forEach(b =>
+    b.addEventListener("click", () => startGame(b.dataset.game)));
+}
+
+/* ---------------- drill session ---------------- */
+function startGame(id) {
+  const game = GAMES.find(g => g.id === id);
+  const order = [...game.items.keys()].sort(() => Math.random() - 0.5);
+  const session = { game, order, at: 0, results: [], xpEarned: 0 };
+  touchStreak();
+  question(session);
+}
+
+function question(sn) {
+  const { game } = sn;
+  const idx = sn.order[sn.at];
+  const item = game.items[idx];
+  const opts = item.opts.map((o, i) => ({ ...o, i })).sort(() => Math.random() - 0.5);
+
+  app.innerHTML = `
+  <div class="fade-in">
+    <div class="q-head">
+      <span class="chip">${game.icon} ${game.title}</span>
+      <div class="meter" role="img" aria-label="Question ${sn.at + 1} of ${sn.order.length}">
+        <i style="width:${Math.round(100 * sn.at / sn.order.length)}%"></i>
+      </div>
+      <span class="q-count">${sn.at + 1} / ${sn.order.length}</span>
+    </div>
+    <p class="small" style="margin-top:10px">${game.how}</p>
+    <div class="q-scenario">${esc(item.q)}</div>
+    <div class="opts" id="opts">
+      ${opts.map(o => `<button class="opt" data-i="${o.i}">${esc(o.t)}</button>`).join("")}
+    </div>
+    <div id="fb"></div>
+    <div class="next-row" id="nextRow"></div>
+  </div>`;
+
+  let tries = 0;
+  const buttons = app.querySelectorAll(".opt");
+  buttons.forEach(btn => btn.addEventListener("click", () => {
+    tries++;
+    const picked = item.opts[+btn.dataset.i];
+    const fb = document.getElementById("fb");
+    if (picked.ok) {
+      buttons.forEach(b => { b.disabled = true; if (!item.opts[+b.dataset.i].ok) b.classList.add("dim"); });
+      btn.classList.add("correct");
+      const gain = tries === 1 ? 10 : tries === 2 ? 5 : 2;
+      sn.xpEarned += gain;
+      S.xp += gain;
+      if (tries === 1) S.firstTry[game.id + ":" + sn.order[sn.at]] = true;
+      sn.results.push(tries === 1);
+      save(S);
+      fb.innerHTML = `<div class="feedback good fade-in"><b>${tries === 1 ? "First try — +10 XP." : `Got there in ${tries} — +${gain} XP.`}</b> ${esc(picked.fb)}</div>`;
+      const last = sn.at + 1 >= sn.order.length;
+      document.getElementById("nextRow").innerHTML =
+        `<button class="btn" id="next">${last ? "Finish drill" : "Next case →"}</button>`;
+      document.getElementById("next").addEventListener("click", () => {
+        sn.at++;
+        (last ? endGame : question)(sn);
+      });
+      document.getElementById("next").focus();
+    } else {
+      btn.classList.add("wrong");
+      btn.disabled = true;
+      fb.innerHTML = `<div class="feedback bad fade-in"><b>Not this one.</b> ${esc(picked.fb)} <i>Try again.</i></div>`;
+    }
+  }));
+}
+
+function endGame(sn) {
+  const first = sn.results.filter(Boolean).length;
+  const total = sn.order.length;
+  const m = mastery(sn.game);
+  S.plays[sn.game.id] = (S.plays[sn.game.id] || 0) + 1;
+  save(S);
+  const perfect = first === total;
+  const dim = dimById[sn.game.dim];
+
+  app.innerHTML = `
+  <div class="card endcard fade-in">
+    <div class="big burst">${perfect ? "🏆" : first / total >= 0.6 ? "✨" : "📚"}</div>
+    <h2>${perfect ? "Flawless drill!" : first / total >= 0.6 ? "Solid work." : "That's how learning feels."}</h2>
+    <p>${first} of ${total} cases right on the first try · +${sn.xpEarned} XP</p>
+    <div class="session-dots" style="justify-content:center">
+      ${sn.results.map(r => `<i class="${r ? "hit" : "miss"}"></i>`).join("")}
+    </div>
+    <div class="spacer"></div>
+    <p class="small" style="max-width:480px;margin:0 auto"><b>${dim.icon} ${dim.name}:</b>
+      ${esc(m >= 80 ? dim.highTip : dim.lowTip)}</p>
+    <div class="next-row" style="justify-content:center">
+      <button class="btn" id="again">Drill again</button>
+      <button class="btn ghost" id="homeBtn">All drills</button>
+      ${m >= 80 ? `<a class="btn ghost" href="test.html">Sit the exam →</a>` : ""}
+    </div>
+  </div>`;
+
+  document.getElementById("again").addEventListener("click", () => startGame(sn.game.id));
+  document.getElementById("homeBtn").addEventListener("click", home);
+}
+
+/* #game=<id> deep-links straight into a drill */
+const deepLink = location.hash.match(/^#game=(\w+)$/);
+if (deepLink && GAMES.some(g => g.id === deepLink[1])) startGame(deepLink[1]); else home();
+</script>
+</body>
+</html>

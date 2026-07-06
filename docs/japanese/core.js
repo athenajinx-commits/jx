@@ -60,12 +60,10 @@ function romajiToKana(src, final = false) {
       if (nx === "'") { out += "ん"; i += 2; continue; }
       if (nx === "n") {
         const nx2 = s[i + 2];
-        if (nx2 === undefined) {
-          if (final) { out += "ん"; i += 2; continue; }
-          break;                                             // keep "nn" pending while typing
-        }
-        if ("aiueoy".includes(nx2)) { out += "ん"; i += 1; } // onna → おんな
-        else { out += "ん"; i += 2; }                        // onnna → おん + na
+        // "onna" pasted/submitted whole → おんな; but a trailing "nn" commits
+        // to ん immediately (takusann → たくさん), like a real IME
+        if (nx2 !== undefined && "aiueoy".includes(nx2)) { out += "ん"; i += 1; }
+        else { out += "ん"; i += 2; }
         continue;
       }
       if (nx === undefined) { if (final) { out += "ん"; i++; } break; }

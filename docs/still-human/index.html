@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Still Human 2045 — Centaur Academy & the Workforce Entry Exam</title>
+<meta name="description" content="Train the six human faculties that stay scarce when intelligence is free, then take the AI-CQ Workforce Entry Examination.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .hero {
+    padding: 34px 0 10px;
+  }
+  .hero .lore {
+    font-size: 1.12rem; max-width: 640px; margin: 16px 0 6px;
+  }
+  .cta-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 26px 0 8px; }
+  .dim-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; margin-top: 16px; }
+  .dim-card h3 { display: flex; align-items: center; gap: 8px; margin-bottom: 2px; }
+  .dim-card .tag { font-size: .85rem; color: var(--accent-ink); font-weight: 600; margin-bottom: 8px; }
+  .dim-card p { font-size: .92rem; }
+  section { margin-top: 44px; }
+  .band-emoji { font-size: 1.2rem; }
+  ol.how { color: var(--ink-2); padding-left: 20px; display: grid; gap: 8px; margin-top: 10px; }
+  ul.src { color: var(--ink-2); padding-left: 20px; display: grid; gap: 6px; margin-top: 10px; font-size: .92rem; }
+  .notice {
+    margin-top: 14px; padding: 12px 16px; border-radius: 12px;
+    background: var(--accent-wash); color: var(--accent-ink); font-size: .9rem;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="nav">
+    <a class="brand" href="./">Still Human<span class="dot">.</span>2045</a>
+    <div class="links">
+      <a href="./" class="active">Home</a>
+      <a href="train.html">🎓 Centaur Academy</a>
+      <a href="test.html">📋 Entry Exam</a>
+      <a href="roadmap.html">🗺️ Roadmaps</a>
+    </div>
+  </nav>
+
+  <header class="hero">
+    <span class="chip accent">Bureau of Human–AI Integration · Est. 2045</span>
+    <h1>Nobody has to work.<br>Some people get to.</h1>
+    <p class="lore">
+      In 2045, the machines — <em>a country of geniuses in a datacenter</em>,
+      one 2026 essay called them — answer every question, finish every task,
+      and summarize your day before you live it. Every citizen draws a
+      Universal Basic Salary. Civilization got through its technological
+      adolescence; the guardrails held. What's left to certify is you. The
+      work permit isn't for people who can <em>use</em> the machines —
+      everyone can. It certifies the one thing they can't supply: that
+      someone is still home. Attention that finishes. Wants of your own.
+      A signature that means something. That proof is the
+      <strong>AI-CQ</strong> — your AI Collaboration Quotient.
+    </p>
+    <div class="cta-row">
+      <a class="btn" href="train.html">🎓 Train at Centaur Academy</a>
+      <a class="btn ghost" href="test.html">📋 Take the Entry Exam</a>
+    </div>
+    <p class="small">Free forever. No signup. Progress saved on your device.</p>
+  </header>
+
+  <section>
+    <h2>The six faculties the exam measures</h2>
+    <p>Not today's AI skills — prompting, fact-checking, delegation — the machines solved
+       those themselves years ago. What the exam measures is what stays scarce when
+       intelligence is free: the human interior. Six faculties, each one a muscle that
+       the assisted life quietly stops exercising.</p>
+    <div class="dim-grid" id="dimGrid"></div>
+  </section>
+
+  <section>
+    <h2>How certification works</h2>
+    <ol class="how">
+      <li><strong>Train</strong> — six drill games at Centaur Academy, one per faculty. Every answer comes with the reasoning, so wrong answers teach more than right ones.</li>
+      <li><strong>Test</strong> — 24 situational-judgment questions, about 12 minutes. No trivia, no trick math: only judgment calls from real collaboration situations.</li>
+      <li><strong>Score</strong> — your AI-CQ lands on a 55–145 scale (like an IQ or EQ score, where 100 = working fluency). You get a skill-by-skill profile and targeted advice, not just a number.</li>
+    </ol>
+    <div class="notice">📜 Bureau notice: scores of <strong>100+</strong> qualify for a Human–AI Collaboration Work Permit.
+      Scores below 100 remain on Universal Basic Salary — which is comfortable, but the good problems go to the certified.
+      Retakes permitted after training. The Bureau sees all attempts. The Bureau is proud of you anyway.</div>
+  </section>
+
+  <section>
+    <h2>Development tracks: three roads to 2045</h2>
+    <p>Where should the training start from where you're standing today? The Bureau publishes
+       tracks for three very different clocks:</p>
+    <div class="dim-grid" id="trackGrid"></div>
+  </section>
+
+  <section>
+    <h2>Certification bands</h2>
+    <div class="card" style="overflow-x:auto">
+      <table class="data">
+        <thead><tr><th>AI-CQ</th><th>Band</th><th>Bureau clearance</th></tr></thead>
+        <tbody id="bandRows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>Today's early signals of 2045's problems</h2>
+    <p>The year is fiction; the trajectory isn't. Each faculty extrapolates something already
+       visible — an essay's field notes on the Great Unread, and the first research measuring
+       what assistance does to the unassisted mind:</p>
+    <ul class="src" id="srcList"></ul>
+  </section>
+
+  <p class="footer-note">Still Human 2045 · a training fiction with a serious core ·
+    <a href="train.html">Academy</a> · <a href="test.html">Exam</a> · <a href="roadmap.html">Roadmaps</a></p>
+</div>
+
+<script src="data.js"></script>
+<script>
+  document.getElementById("dimGrid").innerHTML = DIMENSIONS.map(d => `
+    <div class="card dim-card">
+      <h3><span>${d.icon}</span> ${d.name}</h3>
+      <div class="tag">${d.tagline}</div>
+      <p>${d.desc}</p>
+    </div>`).join("");
+
+  document.getElementById("bandRows").innerHTML = BANDS.map(b => `
+    <tr>
+      <td class="num">${b.min === 0 ? "&lt; 70" : b.min + (b.min === 130 ? "–145" : "+")}</td>
+      <td><span class="band-emoji">${b.emoji}</span> <strong>${b.name}</strong></td>
+      <td>${b.clearance}</td>
+    </tr>`).join("");
+
+  document.getElementById("srcList").innerHTML = SOURCES.map(s =>
+    `<li><a href="${s.u}" target="_blank" rel="noopener">${s.t}</a></li>`).join("");
+
+  document.getElementById("trackGrid").innerHTML = ROADMAPS.map(r => `
+    <a class="card dim-card" href="roadmap.html#${r.id}" style="text-decoration:none;color:inherit">
+      <h3><span>${r.icon}</span> ${r.title}</h3>
+      <div class="tag">${r.sub}</div>
+      <p>${r.phases[0].name} → ${r.phases.at(-1).name} — ${r.phases.length} phases, ${r.phases[0].years.split(" ")[0].split("–")[0]} to the exam hall.</p>
+    </a>`).join("");
+</script>
+</body>
+</html>

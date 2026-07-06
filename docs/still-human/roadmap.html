@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bureau Development Tracks — Roadmaps to 2045</title>
+<meta name="description" content="Three roadmaps from 2026 to the 2045 job market: for a five-year-old, a new grad, and a 55-year-old working to 80.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  .head { padding: 30px 0 6px; }
+  .persona { margin-top: 46px; scroll-margin-top: 20px; }
+  .persona-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .persona-head .p-icon { font-size: 2rem; }
+  .persona-head .sub { color: var(--muted); font-size: .9rem; }
+  .persona > p.intro { margin-top: 10px; max-width: 720px; }
+  .phases { margin-top: 18px; display: grid; gap: 0; }
+  .phase {
+    position: relative; padding: 0 0 26px 28px;
+    border-left: 2px solid var(--accent-track);
+  }
+  .phase:last-child { border-left-color: transparent; padding-bottom: 8px; }
+  .phase::before {
+    content: ""; position: absolute; left: -7px; top: 4px;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); border: 2px solid var(--surface);
+  }
+  .phase .years { font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: var(--accent-ink); font-weight: 700; }
+  .phase h3 { margin: 4px 0 6px; }
+  .phase .dims { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .phase ul { padding-left: 18px; display: grid; gap: 8px; color: var(--ink-2); font-size: .95rem; }
+  .phase ul li::marker { color: var(--accent); }
+  .p-note {
+    border-left: 3px solid var(--accent); padding: 14px 16px;
+    background: var(--chip); border-radius: 12px; margin-top: 16px;
+    font-size: .95rem; color: var(--ink-2); max-width: 720px;
+  }
+  .jump { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+  .jump a { text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="nav">
+    <a class="brand" href="./">Still Human<span class="dot">.</span>2045</a>
+    <div class="links">
+      <a href="./">Home</a>
+      <a href="train.html">🎓 Centaur Academy</a>
+      <a href="test.html">📋 Entry Exam</a>
+      <a href="roadmap.html" class="active">🗺️ Roadmaps</a>
+    </div>
+  </nav>
+
+  <header class="head">
+    <span class="chip accent">Bureau development tracks · issued 2026</span>
+    <h1>Three roads to the exam hall</h1>
+    <p style="max-width:680px;margin-top:12px">
+      The exam is in 2045; the training starts now, and it starts from wherever you're standing.
+      Three citizens, three clocks, one curriculum. Find yours.
+    </p>
+    <div class="jump" id="jump"></div>
+  </header>
+
+  <main id="tracks"></main>
+
+  <div class="spacer"></div>
+  <section class="card" style="margin-top:30px">
+    <h2>Whichever road you're on</h2>
+    <p>The destination is the same six faculties — start training them today, then sit the mock exam to see where you stand.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+      <a class="btn" href="train.html">🎓 Train at Centaur Academy</a>
+      <a class="btn ghost" href="test.html">📋 Take the Entry Exam</a>
+    </div>
+  </section>
+
+  <p class="footer-note">Bureau of Human–AI Integration · development tracks are advisory; the interior is mandatory</p>
+</div>
+
+<script src="data.js"></script>
+<script>
+"use strict";
+const dimById = Object.fromEntries(DIMENSIONS.map(d => [d.id, d]));
+
+document.getElementById("jump").innerHTML = ROADMAPS.map(r =>
+  `<a class="chip" href="#${r.id}">${r.icon} ${r.title}</a>`).join("");
+
+document.getElementById("tracks").innerHTML = ROADMAPS.map(r => `
+  <section class="persona" id="${r.id}">
+    <div class="persona-head">
+      <span class="p-icon">${r.icon}</span>
+      <h2>${r.title}</h2>
+      <span class="sub">${r.sub}</span>
+    </div>
+    <p class="intro">${r.intro}</p>
+    <div class="card" style="margin-top:16px">
+      <div class="phases">
+        ${r.phases.map(p => `
+          <div class="phase">
+            <div class="years">${p.years}</div>
+            <h3>${p.name}</h3>
+            <div class="dims">${p.dims.map(id => `<span class="chip">${dimById[id].icon} ${dimById[id].name}</span>`).join("")}</div>
+            <ul>${p.points.map(pt => `<li>${pt}</li>`).join("")}</ul>
+          </div>`).join("")}
+      </div>
+    </div>
+    <div class="p-note"><b>Bureau note:</b> ${r.note}</div>
+  </section>`).join("");
+</script>
+</body>
+</html>
