@@ -82,27 +82,28 @@ const DIMENSIONS = [
 /* ------------------------------------------------------------
    THE FRAME — Year 2045: routine cognition is automated and
    every citizen draws a Universal Basic Salary. Paid human work
-   still exists — reserved for people certified to bring what
-   machines can't. The AI-CQ test is the Workforce Entry
-   Examination; Centaur Academy is the official prep school.
+   still exists — it finds the people who bring what machines
+   can't. Nothing here is official: the AI-CQ is the Oracle's
+   examination, and Centaur Academy is where its curriculum is
+   drilled. A reading, not a ruling.
    ------------------------------------------------------------ */
 const EXAM = {
-  authority: "Bureau of Human–AI Integration",
+  authority: "The Oracle's Counsel",
   examName: "Workforce Entry Examination",
-  form: "Form WEE-2045 · Series AICQ",
+  form: "The Oracle's Papers · Series AICQ",
   passScore: 100,
-  passNote: "Scores of 100 and above qualify for a Human–AI Collaboration Work Permit. Scores below 100 continue on Universal Basic Salary — retake permitted after training.",
+  passNote: "By the Oracle's reading, 100 and above marks readiness for the work reserved for humans. Below 100, the salary keeps you fed while you train — return whenever you're ready.",
   lore: "In 2045, nobody has to work. Everybody eats. The machines answer every question, finish every task, and summarize every day before you live it. The permit isn't for people who can use the machines — everyone can. It's for people the machines can't replace: the ones still paying attention, still wanting, still deciding. Civilization passed its technological adolescence. This exam is yours."
 };
 
 /* Score bands for the AI-CQ test (raw 0–72 mapped to 55–145) */
 const BANDS = [
-  { min: 130, name: "Centaur",   emoji: "🏆", clearance: "Class-A Work Permit · unrestricted", blurb: "Fully present. You read to the end, want on your own authority, and sign your decisions. The machines bring you their hardest ambiguities because you supply the one thing they can't: someone home." },
-  { min: 115, name: "Conductor", emoji: "🎼", clearance: "Class-B Work Permit · high-stakes roles", blurb: "The tools amplify you without steering you. Your attention finishes what it starts, your taste has reasons, and your overrides are earned. High-stakes rooms need exactly this." },
-  { min: 100, name: "Navigator", emoji: "🧭", clearance: "Class-C Work Permit · standard roles", blurb: "Solidly your own person. You mostly notice when the defaults are living your life for you — mostly. Under pressure, the summaries win and the wanting goes quiet. Consistency is your frontier." },
-  { min: 85,  name: "Apprentice", emoji: "🛠️", clearance: "Permit denied · UBS continues · retake in 14 days", blurb: "The machinery serves you well, but the interior is thinning: digests unexpanded, defaults unexamined, decisions co-signed rather than owned. All six faculties respond fast to deliberate practice." },
-  { min: 70,  name: "Explorer",  emoji: "🧪", clearance: "Permit denied · UBS continues · training advised", blurb: "You move through the assisted world smoothly — that's the problem. Smoothness is what capture feels like from the inside. The Academy drills are designed to reintroduce useful friction." },
-  { min: 0,   name: "Newcomer",  emoji: "🌱", clearance: "Permit denied · UBS continues · enroll at the Academy", blurb: "Everyone starts here, and none of this is talent — attention, volition, and judgment are muscles with a known training protocol. Work the six drills and retake in two weeks. The Bureau is patient." }
+  { min: 130, name: "Centaur",   emoji: "🏆", clearance: "Ready for any room · the hardest problems will find you", blurb: "Fully present. You read to the end, want on your own authority, and sign your decisions. The machines bring you their hardest ambiguities because you supply the one thing they can't: someone home." },
+  { min: 115, name: "Conductor", emoji: "🎼", clearance: "Ready for high-stakes work", blurb: "The tools amplify you without steering you. Your attention finishes what it starts, your taste has reasons, and your overrides are earned. High-stakes rooms need exactly this." },
+  { min: 100, name: "Navigator", emoji: "🧭", clearance: "Ready for the work · keep training", blurb: "Solidly your own person. You mostly notice when the defaults are living your life for you — mostly. Under pressure, the summaries win and the wanting goes quiet. Consistency is your frontier." },
+  { min: 85,  name: "Apprentice", emoji: "🛠️", clearance: "Not yet · the salary continues · retake in 14 days", blurb: "The machinery serves you well, but the interior is thinning: digests unexpanded, defaults unexamined, decisions co-signed rather than owned. All six faculties respond fast to deliberate practice." },
+  { min: 70,  name: "Explorer",  emoji: "🧪", clearance: "Not yet · the salary continues · train first", blurb: "You move through the assisted world smoothly — that's the problem. Smoothness is what capture feels like from the inside. The Academy drills are designed to reintroduce useful friction." },
+  { min: 0,   name: "Newcomer",  emoji: "🌱", clearance: "Not yet · begin at the Academy", blurb: "Everyone starts here, and none of this is talent — attention, volition, and judgment are muscles with a known training protocol. Work the six drills and retake in two weeks. The Oracle is patient." }
 ];
 
 /* ============================================================
@@ -134,7 +135,7 @@ const GAMES = [
           { t: "It's from a certified summarizer, so it can be signed on", fb: "Certification means the summary is honest — not lossless. Compression must drop something, and what it drops is chosen by an average of past readers, not by your situation." },
           { t: "Summaries are honest but lossy, and the losses cluster in caveats, conditions, and edge cases — for load-bearing documents, read the source where the summary says 'standard'", ok: true, fb: "Exactly. 'Standard terms' is where compression hides the interesting clause — deviations get flagged, but so-called standards are only standard for the median party, and you are not the median. Load-bearing text earns whole-source reading." },
           { t: "Ask three different summarizers and sign if they agree", fb: "Ensemble skimming. They share the same compression incentives — agreement among summaries tells you about summarizers, not about clause 41(c)." },
-          { t: "Summaries of legal text are illegal in 2045, so this can't happen", fb: "The Bureau wishes. No — the digest layer covers everything, which is exactly why knowing its failure shape is a certified skill." }
+          { t: "Summaries of legal text are illegal in 2045, so this can't happen", fb: "If only. No — the digest layer covers everything, which is exactly why knowing its failure shape is on the exam." }
         ]
       },
       {
@@ -183,7 +184,7 @@ const GAMES = [
         ]
       },
       {
-        q: "You want to actually train attention — the capacity itself, like a muscle. Which 2045 regimen does the Bureau's research actually endorse?",
+        q: "You want to actually train attention — the capacity itself, like a muscle. Which 2045 regimen do the wise actually endorse?",
         opts: [
           { t: "Neurostim focus sessions during work — effortless concentration on demand", fb: "Assisted focus performs; it doesn't train. When the stim is off, the unassisted baseline is what you've got, and it's been resting." },
           { t: "Daily unassisted deep-reading reps — one full document, summarizers off, ending with 'what would the digest have dropped?' — plus protecting one long-form ritual no tool touches", ok: true, fb: "Attention responds to progressive unassisted load, like any capacity. The closing question is the key rep: predicting the compression loss is what turns reading into training." },
@@ -256,7 +257,7 @@ const GAMES = [
         ]
       },
       {
-        q: "A Bureau study finds citizens increasingly 'prompt-blank': given an open request box for anything at all, they type what they typed last time. The certified countermeasure is:",
+        q: "A 2045 study finds citizens increasingly 'prompt-blank': given an open request box for anything at all, they type what they typed last time. The countermeasure the wise recommend:",
         opts: [
           { t: "Better suggestion chips above the request box", fb: "Suggestions are the pathogen, not the cure. The blank was caused by never having to fill one." },
           { t: "Scheduled boredom: regular tool-free idle time, because wants are generated in unstimulated gaps — the mind wanders, snags on something, and a desire forms; no gaps, no formation", ok: true, fb: "Boredom turns out to be load-bearing. The wandering mind is the wanting engine's idle cycle — 2045 removed every gap and then wondered where the wants went. Walks without input remain the most advanced volition technology known." },
@@ -359,7 +360,7 @@ const GAMES = [
         q: "Content labels read 'certified human-made.' Knowing 2045's economy, what is the grounded relationship to such labels?",
         opts: [
           { t: "Full trust — certification infrastructure is what fixed the synthetic flood", fb: "It helped. But any label valuable enough becomes a target: certification-farming, humans laundering machine output, stolen attestations. Value attracts forgery, always." },
-          { t: "Bayesian, not binary: a label is evidence whose weight equals the cost of faking it — trust labels backed by expensive verification, and for anything load-bearing, look past the badge to the structure: who verified, what it cost to fake, who profits", ok: true, fb: "Labels are priors, not verdicts. The durable skill is reading the *economics* of a credential — cheap-to-fake badges are decoration; costly-to-fake chains are evidence. This survives every future label regime, which is why the Bureau tests it." },
+          { t: "Bayesian, not binary: a label is evidence whose weight equals the cost of faking it — trust labels backed by expensive verification, and for anything load-bearing, look past the badge to the structure: who verified, what it cost to fake, who profits", ok: true, fb: "Labels are priors, not verdicts. The durable skill is reading the *economics* of a credential — cheap-to-fake badges are decoration; costly-to-fake chains are evidence. This survives every future label regime, which is why the exam tests it." },
           { t: "Ignore labels entirely — assume everything is synthetic", fb: "Uniform cynicism throws away real signal and, conveniently for the ghosts, makes the authentic indistinguishable from the generated." },
           { t: "Trust labels from platforms you pay for", fb: "Payment changes the business model, not the forgery economics. Subscription services launder credentials too." }
         ]
@@ -511,12 +512,12 @@ const GAMES = [
         ]
       },
       {
-        q: "The Bureau mandates annual 'Analog Days' — 24 tool-free hours — and productivity metrics show they cost the economy measurable output. Why does the mandate survive every cost-benefit review?",
+        q: "The Oracle's calendar keeps one tradition above all: the annual 'Analog Day' — 24 tool-free hours — though productivity metrics show it costs the economy measurable output. Why does the tradition survive every cost-benefit critique?",
         opts: [
           { t: "Political theater — a nostalgic ritual with a lobby", fb: "The actuaries keep it, not the nostalgists. Something in the risk models pays for those lost hours many times over." },
           { t: "It's an insurance premium: the output lost is the visible cost of keeping a distributed human fallback layer alive — outages, adversarial attacks, and novel situations all land eventually, and a population that can still function unassisted is the difference between incident and collapse", ok: true, fb: "Resilience accounting. Efficiency optimizes for the expected day; sovereignty is provisioned for the tail. The Analog Day looks like waste every normal day and like salvation exactly once — which is the payoff profile of every insurance policy worth holding." },
           { t: "It reduces implant maintenance costs", fb: "Rounding error. The asset being maintained is in the citizens, not the hardware." },
-          { t: "It doesn't survive — most citizens skip it quietly", fb: "Compliance is imperfect, which worries the actuaries for exactly the reason the mandate exists: the skippers are self-selecting out of the fallback layer." }
+          { t: "It doesn't survive — most citizens skip it quietly", fb: "Observance is imperfect, which worries the actuaries for exactly the reason the tradition exists: the skippers are self-selecting out of the fallback layer." }
         ]
       },
       {
@@ -532,7 +533,7 @@ const GAMES = [
         q: "Two experts, equal reputations. K queries her exocortex constantly, accepts fluently, moves fast. J pauses — predicts before querying, sometimes disagrees after. K outproduces J on every normal day. When does the ranking invert, and what does it teach?",
         opts: [
           { t: "Never — throughput compounds; J is romanticizing friction", fb: "On the novel case outside the training distribution, K's fluency has nothing underneath it. The inversion day is rare and tends to be the day that matters." },
-          { t: "On the abnormal day — novel regime, adversarial input, system failure — J still contains a working expert and K contains a fluent interface; the lesson is that J's pauses were not overhead but the daily maintenance of the thing K quietly lost", ok: true, fb: "Predict-then-query is sovereignty in three seconds a case: every prediction keeps the internal model exercised AND scores the machine against it. K's speed was real, and so was the hollowing. The Bureau certifies J's habit because abnormal days are when certification matters." },
+          { t: "On the abnormal day — novel regime, adversarial input, system failure — J still contains a working expert and K contains a fluent interface; the lesson is that J's pauses were not overhead but the daily maintenance of the thing K quietly lost", ok: true, fb: "Predict-then-query is sovereignty in three seconds a case: every prediction keeps the internal model exercised AND scores the machine against it. K's speed was real, and so was the hollowing. The Oracle commends J's habit because abnormal days are when it matters." },
           { t: "When management notices K's query costs", fb: "Query costs are negligible in 2045. The expensive thing K consumes is her own unexercised expertise — a cost no dashboard shows until the day it does." },
           { t: "J should adopt K's style — the machines have earned the trust", fb: "Trust isn't the issue; the machines ARE excellent. The issue is what J's style preserves that K's dissolves: the capacity to be the expert when the interface is the thing that's wrong." }
         ]
@@ -620,12 +621,12 @@ const GAMES = [
         ]
       },
       {
-        q: "End of the 2045 curriculum. Attention, volition, grounding, taste, sovereignty — why does the Bureau teach accountability LAST, as the capstone?",
+        q: "End of the 2045 curriculum. Attention, volition, grounding, taste, sovereignty — why do the wise teach accountability LAST, as the capstone?",
         opts: [
-          { t: "Alphabetical accident of the original syllabus", fb: "The Bureau alphabetizes nothing. The ordering is the argument." },
+          { t: "Alphabetical accident of the original syllabus", fb: "The Oracle alphabetizes nothing. The ordering is the argument." },
           { t: "Because it's what the other five are FOR: attention gathers true input, grounding verifies it, sovereignty keeps an independent model, volition supplies wants, taste supplies values — and accountability is the act that spends them all: a human, fully informed and fully themselves, signing a decision. Remove the signature and the rest is elaborate spectating", ok: true, fb: "The whole curriculum in one sentence: the machines do everything else; deciding-and-owning is the residue — and the residue turns out to be the point. Every faculty you've trained here converges on the moment you put your name on an outcome. That moment is what the permit certifies." },
           { t: "Because it's the easiest to test", fb: "It's the hardest — courage under correlated consensus resists multiple choice. It's last because it's the load the other five carry." },
-          { t: "Because employers demanded a liability-training module", fb: "Employers asked for many things; the Bureau built a curriculum about remaining a person. Liability is the legal shadow of the actual subject: authorship." }
+          { t: "Because employers demanded a liability-training module", fb: "Employers asked for many things; the Oracle wrote a curriculum about remaining a person. Liability is the legal shadow of the actual subject: authorship." }
         ]
       }
     ]

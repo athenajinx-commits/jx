@@ -3,42 +3,132 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bureau Development Tracks — Roadmaps to 2045</title>
+<title>The Oracle's Roadmaps — Three Roads to 2045</title>
 <meta name="description" content="Three roadmaps from 2026 to the 2045 job market: for a five-year-old, a new grad, and a 55-year-old working to 80.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <style>
+  html { scroll-behavior: smooth; }
   .head { padding: 30px 0 6px; }
-  .persona { margin-top: 46px; scroll-margin-top: 20px; }
-  .persona-head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-  .persona-head .p-icon { font-size: 2rem; }
-  .persona-head .sub { color: var(--muted); font-size: .9rem; }
-  .persona > p.intro { margin-top: 10px; max-width: 720px; }
-  .phases { margin-top: 18px; display: grid; gap: 0; }
-  .phase {
-    position: relative; padding: 0 0 26px 28px;
-    border-left: 2px solid var(--accent-track);
-  }
-  .phase:last-child { border-left-color: transparent; padding-bottom: 8px; }
-  .phase::before {
-    content: ""; position: absolute; left: -7px; top: 4px;
-    width: 12px; height: 12px; border-radius: 50%;
-    background: var(--accent); border: 2px solid var(--surface);
-  }
-  .phase .years { font-size: .78rem; letter-spacing: .08em; text-transform: uppercase; color: var(--accent-ink); font-weight: 700; }
-  .phase h3 { margin: 4px 0 6px; }
-  .phase .dims { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
-  .phase ul { padding-left: 18px; display: grid; gap: 8px; color: var(--ink-2); font-size: .95rem; }
-  .phase ul li::marker { color: var(--accent); }
-  .p-note {
-    border-left: 3px solid var(--accent); padding: 14px 16px;
-    background: var(--chip); border-radius: 12px; margin-top: 16px;
-    font-size: .95rem; color: var(--ink-2); max-width: 720px;
-  }
+
+  /* Ordinal phase ramp — one blue hue, light→dark = training compounding.
+     Steps from the validated sequential ramp (250/350/450/600); same hexes
+     in both modes, all clear the ordinal contrast floor on either surface. */
+  :root { --p1: #86b6ef; --p2: #5598e7; --p3: #2a78d6; --p4: #184f95; }
+
   .jump { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
   .jump a { text-decoration: none; }
+
+  /* ---------- the three-clocks chart ---------- */
+  .clocks { margin-top: 26px; }
+  .clocks h2 { margin-bottom: 2px; }
+  .clocks .sub { font-size: .9rem; color: var(--muted); margin-bottom: 18px; }
+  .clock-plot { position: relative; padding: 26px 0 4px; }
+  .clock-row { display: grid; grid-template-columns: 168px 1fr; gap: 14px; align-items: center; margin-bottom: 14px; }
+  .clock-row .who { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .clock-row .who .ic { font-size: 1.25rem; }
+  .clock-row .who .nm { font-weight: 600; font-size: .92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .clock-row .who .ages { font-size: .75rem; color: var(--muted); }
+  .lane { position: relative; height: 26px; }
+  .lane .track { position: absolute; inset: 6px 0; border-radius: 4px; background: var(--chip); }
+  .seg {
+    position: absolute; top: 0; height: 26px; border-radius: 0;
+    display: flex; align-items: center; justify-content: center;
+    font: 700 11px "Space Grotesk", system-ui, sans-serif;
+    box-shadow: inset -2px 0 0 var(--surface); /* 2px surface gap between segments */
+    text-decoration: none; cursor: pointer;
+    transition: filter .12s ease, transform .12s ease;
+  }
+  .seg:hover { filter: brightness(1.12); transform: scaleY(1.15); }
+  .who-link { text-decoration: none; color: inherit; border-radius: 8px; }
+  .who-link:hover .nm { color: var(--accent-ink); }
+  .seg:first-of-type { border-radius: 4px 0 0 4px; }
+  .seg.last { border-radius: 0 4px 4px 0; box-shadow: none; }
+  .seg:first-of-type.last { border-radius: 4px; }
+  .axis { position: relative; height: 20px; margin-left: 182px; }
+  .axis span { position: absolute; transform: translateX(-50%); font-size: .75rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .examline {
+    position: absolute; top: 0; bottom: 20px; width: 0;
+    border-left: 2px dashed transparent; /* geometry only; the visible line is the ::before */
+  }
+  .examline::before { content: ""; position: absolute; top: 22px; bottom: 0; left: -1px; width: 2px; background: var(--bad); opacity: .55; border-radius: 1px; }
+  .examline .flag {
+    position: absolute; top: 0; left: 0; transform: translateX(-50%);
+    white-space: nowrap; font: 700 .72rem "Space Grotesk", sans-serif;
+    color: #fff; background: var(--bad); padding: 2px 10px; border-radius: 999px;
+  }
+  .clock-note { font-size: .8rem; color: var(--muted); margin-top: 10px; }
+  .clock-note .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; margin: 0 3px 0 8px; }
+  @media (max-width: 620px) {
+    .clock-row { grid-template-columns: 1fr; gap: 4px; margin-bottom: 16px; }
+    .axis { margin-left: 0; }
+    .examline::before { top: 46px; }
+  }
+
+  /* ---------- persona sections ---------- */
+  .persona { margin-top: 52px; scroll-margin-top: 20px; }
+  .persona-banner {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    background: var(--accent-wash); border-radius: 16px; padding: 18px 22px;
+  }
+  .persona-banner .p-icon {
+    font-size: 1.9rem; background: var(--surface); border-radius: 50%;
+    width: 58px; height: 58px; display: flex; align-items: center; justify-content: center;
+    box-shadow: var(--shadow); flex: none;
+  }
+  .persona-banner h2 { margin: 0; }
+  .persona-banner .sub { color: var(--accent-ink); font-size: .88rem; font-weight: 600; }
+  .persona-banner .arc { margin-left: auto; text-align: right; }
+  .persona-banner .arc .big { font: 700 1.15rem "Space Grotesk", sans-serif; color: var(--accent-ink); white-space: nowrap; }
+  .persona-banner .arc .cap { font-size: .72rem; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+  .persona > p.intro { margin-top: 14px; max-width: 720px; }
+
+  .phases { margin-top: 18px; display: grid; gap: 0; }
+  .phase { position: relative; padding: 0 0 8px 40px; scroll-margin-top: 24px; }
+  .phase-card.flash { animation: flash 1.6s ease-out 1; }
+  @keyframes flash {
+    0%   { box-shadow: 0 0 0 3px var(--accent); }
+    100% { box-shadow: var(--shadow); }
+  }
+  .phase::after { /* connector */
+    content: ""; position: absolute; left: 13px; top: 30px; bottom: -2px;
+    width: 2px; background: var(--accent-track);
+  }
+  .phase:last-child::after { display: none; }
+  .phase .node {
+    position: absolute; left: 0; top: 2px;
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font: 700 13px "Space Grotesk", sans-serif;
+    border: 2px solid var(--surface); box-shadow: var(--shadow);
+  }
+  .phase-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+    padding: 16px 18px; margin-bottom: 14px; box-shadow: var(--shadow);
+    border-top: 3px solid var(--accent); /* per-phase color set inline */
+  }
+  .phase .years { font-size: .76rem; letter-spacing: .08em; text-transform: uppercase; color: var(--accent-ink); font-weight: 700; }
+  .phase h3 { margin: 3px 0 8px; font-size: 1.12rem; }
+  .phase .dims { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .phase ul { padding-left: 18px; display: grid; gap: 9px; color: var(--ink-2); font-size: .95rem; line-height: 1.55; }
+  .phase ul li::marker { color: var(--accent); }
+  .phase ul li b { color: var(--ink); }
+
+  .p-note {
+    display: flex; gap: 12px; align-items: flex-start;
+    border: 1px dashed var(--baseline); padding: 14px 16px;
+    background: var(--chip); border-radius: 12px; margin: 4px 0 0 40px;
+    font-size: .95rem; color: var(--ink-2);
+  }
+  .p-note .stamp-ic { font-size: 1.3rem; flex: none; }
+  .p-note b { color: var(--ink); }
+  @media (max-width: 620px) {
+    .phase { padding-left: 34px; }
+    .p-note { margin-left: 0; }
+    .persona-banner .arc { margin-left: 0; text-align: left; }
+  }
 </style>
 </head>
 <body>
@@ -55,7 +145,7 @@
   </nav>
 
   <header class="head">
-    <span class="chip accent">Bureau development tracks · issued 2026</span>
+    <span class="chip accent">🔮 The Oracle's development tracks · set down in 2026</span>
     <h1>Three roads to the exam hall</h1>
     <p style="max-width:680px;margin-top:12px">
       The exam is in 2045; the training starts now, and it starts from wherever you're standing.
@@ -63,6 +153,12 @@
     </p>
     <div class="jump" id="jump"></div>
   </header>
+
+  <section class="clocks card">
+    <h2>Three clocks, one axis</h2>
+    <p class="sub">Each track's phases on the same 2026–2051 timeline — color deepens as the training compounds. Full detail for every phase below.</p>
+    <div id="clockPlot"></div>
+  </section>
 
   <main id="tracks"></main>
 
@@ -76,38 +172,125 @@
     </div>
   </section>
 
-  <p class="footer-note">Bureau of Human–AI Integration · development tracks are advisory; the interior is mandatory</p>
+  <p class="footer-note">The Oracle's counsel · the tracks are advisory; the interior is mandatory</p>
 </div>
 
 <script src="data.js"></script>
 <script>
 "use strict";
 const dimById = Object.fromEntries(DIMENSIONS.map(d => [d.id, d]));
+const PHASE_COLORS = ["var(--p1)", "var(--p2)", "var(--p3)", "var(--p4)"];
+const PHASE_INK = ["#0b0b0b", "#0b0b0b", "#ffffff", "#ffffff"]; // by fill luminance
 
+/* ---- jump chips ---- */
 document.getElementById("jump").innerHTML = ROADMAPS.map(r =>
   `<a class="chip" href="#${r.id}">${r.icon} ${r.title}</a>`).join("");
 
-document.getElementById("tracks").innerHTML = ROADMAPS.map(r => `
+/* ---- three-clocks chart ---- */
+const Y0 = 2026, Y1 = 2051;
+const pct = y => ((y - Y0) / (Y1 - Y0) * 100);
+const spanOf = s => { const m = s.match(/(\d{4})–(\d{4})/); return m ? [+m[1], +m[2]] : null; };
+
+function lane(r) {
+  const spans = r.phases.map(p => spanOf(p.years));
+  return `
+  <div class="clock-row">
+    <a class="who who-link" href="#${r.id}" title="Jump to ${r.title}'s track"><span class="ic">${r.icon}</span>
+      <span><span class="nm">${r.title}</span><br><span class="ages">${r.sub.split("·")[1] || ""}</span></span>
+    </a>
+    <div class="lane" role="group" aria-label="${r.title}: ${r.phases.map((p, i) => `phase ${i + 1} ${p.name}, ${p.years.split("·")[0].trim()}`).join("; ")}">
+      <div class="track"></div>
+      ${r.phases.map((p, i) => {
+        const [a, b] = spans[i];
+        const last = i === r.phases.length - 1;
+        return `<a class="seg ${last ? "last" : ""}" href="#${r.id}-p${i + 1}" title="${p.name} · ${p.years} — click for detail"
+          aria-label="${r.title} phase ${i + 1}: ${p.name}"
+          style="left:${pct(a)}%;width:${pct(b) - pct(a)}%;background:${PHASE_COLORS[i]};color:${PHASE_INK[i]}">${i + 1}</a>`;
+      }).join("")}
+    </div>
+  </div>`;
+}
+
+document.getElementById("clockPlot").innerHTML = `
+  <div class="clock-plot">
+    <div class="examline" style="left:calc(182px + (100% - 182px) * ${pct(2045) / 100})">
+      <span class="flag">📋 2045 · Entry Exam</span>
+    </div>
+    <div id="lanes">${ROADMAPS.map(lane).join("")}</div>
+    <div class="axis">
+      ${[2026, 2035, 2045, 2051].map(y => `<span style="left:${pct(y)}%">${y}</span>`).join("")}
+    </div>
+  </div>
+  <div class="clock-note">Phases:
+    ${PHASE_COLORS.map((c, i) => `<span class="sw" style="background:${c}"></span>${i + 1}`).join(" ")}
+    — one hue, deepening with progress · <b>click any segment</b> to jump to that phase's detail · red line = the Workforce Entry Examination
+  </div>`;
+
+/* On narrow screens the label column stacks, so the exam line spans full width */
+function fixExamline() {
+  const el = document.querySelector(".examline");
+  if (!el) return;
+  const narrow = window.matchMedia("(max-width: 620px)").matches;
+  el.style.left = narrow ? `${pct(2045)}%` : `calc(182px + (100% - 182px) * ${pct(2045) / 100})`;
+}
+window.addEventListener("resize", fixExamline);
+fixExamline();
+
+/* ---- persona sections ---- */
+const boldLead = t => {
+  const i = t.indexOf(":");
+  return (i > 5 && i < 70) ? `<b>${t.slice(0, i)}:</b>${t.slice(i + 1)}` : t;
+};
+
+document.getElementById("tracks").innerHTML = ROADMAPS.map(r => {
+  const first = spanOf(r.phases[0].years), last = spanOf(r.phases.at(-1).years);
+  return `
   <section class="persona" id="${r.id}">
-    <div class="persona-head">
+    <div class="persona-banner">
       <span class="p-icon">${r.icon}</span>
-      <h2>${r.title}</h2>
-      <span class="sub">${r.sub}</span>
+      <div>
+        <h2>${r.title}</h2>
+        <div class="sub">${r.sub}</div>
+      </div>
+      <div class="arc">
+        <div class="big">${first[0]} → ${last[1]}</div>
+        <div class="cap">${r.phases.length} phases · ${last[1] - first[0]} years</div>
+      </div>
     </div>
     <p class="intro">${r.intro}</p>
-    <div class="card" style="margin-top:16px">
-      <div class="phases">
-        ${r.phases.map(p => `
-          <div class="phase">
+    <div class="phases">
+      ${r.phases.map((p, i) => `
+        <div class="phase" id="${r.id}-p${i + 1}">
+          <span class="node" style="background:${PHASE_COLORS[i]};color:${PHASE_INK[i]}">${i + 1}</span>
+          <div class="phase-card" style="border-top-color:${PHASE_COLORS[i]}">
             <div class="years">${p.years}</div>
             <h3>${p.name}</h3>
             <div class="dims">${p.dims.map(id => `<span class="chip">${dimById[id].icon} ${dimById[id].name}</span>`).join("")}</div>
-            <ul>${p.points.map(pt => `<li>${pt}</li>`).join("")}</ul>
-          </div>`).join("")}
-      </div>
+            <ul>${p.points.map(pt => `<li>${boldLead(pt)}</li>`).join("")}</ul>
+          </div>
+        </div>`).join("")}
     </div>
-    <div class="p-note"><b>Bureau note:</b> ${r.note}</div>
-  </section>`).join("");
+    <div class="p-note"><span class="stamp-ic">🔮</span><span><b>The Oracle's note:</b> ${r.note}</span></div>
+  </section>`;
+}).join("");
+
+/* Land the jump visibly: scroll on initial load (anchors are JS-rendered,
+   so the browser's native hash-scroll fired before they existed) and flash
+   the phase card a segment links to. */
+function flashTarget(scroll) {
+  const id = location.hash.slice(1);
+  if (!id) return;
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (scroll) el.scrollIntoView({ behavior: "instant", block: "start" });
+  const card = el.querySelector(".phase-card");
+  if (!card) return;
+  card.classList.remove("flash");
+  void card.offsetWidth; /* restart the animation on repeat clicks */
+  card.classList.add("flash");
+}
+window.addEventListener("hashchange", () => flashTarget(false));
+flashTarget(true);
 </script>
 </body>
 </html>

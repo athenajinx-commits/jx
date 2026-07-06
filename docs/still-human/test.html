@@ -55,7 +55,7 @@
 
   <main id="app"></main>
 
-  <p class="footer-note">Form WEE-2045 · Series AICQ · Bureau of Human–AI Integration ·
+  <p class="footer-note">Series AICQ · the Oracle's counsel · a reading, not a ruling ·
     underprepared? <a href="train.html">the Academy is free</a></p>
 </div>
 
@@ -78,7 +78,7 @@ function intro() {
   app.innerHTML = `
   <div class="fade-in">
     <div class="exam-head">
-      <div class="seal">🏛️</div>
+      <div class="seal">🔮</div>
       <div class="form-no">${EXAM.form}</div>
       <h1>${EXAM.examName}</h1>
       <p style="max-width:600px;margin:12px auto 0">${EXAM.lore}</p>
@@ -92,7 +92,7 @@ function intro() {
         <li>No feedback until the end — this is the exam, not the Academy. Answer as you would actually behave, not as you think you should.</li>
         <li>Your AI-CQ lands on a <strong>55–145</strong> scale. ${EXAM.passNote}</li>
       </ol>
-      ${last ? `<p class="small" style="margin-top:14px">Previous attempt: <strong>${last.score}</strong> (${new Date(last.date).toLocaleDateString()}) — the Bureau keeps records.</p>` : ""}
+      ${last ? `<p class="small" style="margin-top:14px">Previous attempt: <strong>${last.score}</strong> (${new Date(last.date).toLocaleDateString()}) — the Oracle remembers.</p>` : ""}
       <div class="spacer"></div>
       <button class="btn" id="start">Begin examination</button>
     </div>
@@ -203,9 +203,9 @@ function results(score, perDim, prev) {
   app.innerHTML = `
   <div class="fade-in">
     <div class="card certificate center" style="padding:36px 22px">
-      <div class="stamp ${passed ? "pass" : "fail"}">${passed ? "PERMIT GRANTED" : "UBS CONTINUES"}</div>
+      <div class="stamp ${passed ? "pass" : "fail"}">${passed ? "READY TO WORK" : "NOT YET"}</div>
       <div class="form-no" style="letter-spacing:.14em;text-transform:uppercase;font-size:.72rem;color:var(--muted)">
-        ${EXAM.authority} · official result</div>
+        ${EXAM.authority} · a reading, not a ruling</div>
       <p class="small" style="margin-top:14px">Your AI Collaboration Quotient</p>
       <div class="hero-num">${score}</div>
       <div class="band-line">${band.emoji} ${band.name}</div>
@@ -241,7 +241,7 @@ function results(score, perDim, prev) {
     </section>
 
     <section>
-      <h2>Bureau guidance</h2>
+      <h2>The Oracle's guidance</h2>
       <p>Strongest skill: <strong>${strongest.icon} ${strongest.name}</strong>. ${esc(strongest.highTip)}</p>
       ${weakest.map(d => `<div class="advice"><b>${d.icon} ${d.name}</b> — ${esc(d.lowTip)}</div>`).join("")}
       <div class="spacer"></div>
@@ -249,7 +249,7 @@ function results(score, perDim, prev) {
         <a class="btn" href="train.html">🎓 Train the weak spots</a>
         <button class="btn ghost" id="retake">Retake the exam</button>
       </div>
-      <p class="small" style="margin-top:12px">The Bureau recommends at least a few Academy drills between attempts —
+      <p class="small" style="margin-top:12px">The Oracle recommends at least a few Academy drills between attempts —
         retaking immediately mostly measures your memory of the questions.</p>
     </section>
   </div>`;
