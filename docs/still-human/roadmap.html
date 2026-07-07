@@ -116,6 +116,12 @@
   .phase ul li::marker { color: var(--accent); }
   .phase ul li b { color: var(--ink); }
 
+  /* prescriptions — concrete action items on a cadence */
+  .rx { margin-top: 14px; background: var(--accent-wash); border-radius: 10px; padding: 13px 15px; }
+  .rx-t { font: 700 .72rem "Space Grotesk", sans-serif; letter-spacing: .08em; text-transform: uppercase; color: var(--accent-ink); margin-bottom: 9px; }
+  .rx ul { list-style: none; padding: 0; display: grid; gap: 8px; color: var(--ink-2); font-size: .93rem; line-height: 1.5; }
+  .rx ul li b { color: var(--ink); }
+
   .p-note {
     display: flex; gap: 12px; align-items: flex-start;
     border: 1px dashed var(--baseline); padding: 14px 16px;
@@ -267,6 +273,10 @@ document.getElementById("tracks").innerHTML = ROADMAPS.map(r => {
             <h3>${p.name}</h3>
             <div class="dims">${p.dims.map(id => `<span class="chip">${dimById[id].icon} ${dimById[id].name}</span>`).join("")}</div>
             <ul>${p.points.map(pt => `<li>${boldLead(pt)}</li>`).join("")}</ul>
+            ${p.actions ? `<div class="rx">
+              <div class="rx-t">🔮 Prescriptions · on cadence</div>
+              <ul>${p.actions.map(a => `<li>${boldLead(a)}</li>`).join("")}</ul>
+            </div>` : ""}
           </div>
         </div>`).join("")}
     </div>

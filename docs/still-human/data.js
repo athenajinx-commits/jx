@@ -934,6 +934,14 @@ const ROADMAPS = [
           "Protect boredom like an asset: unscheduled, unscreened hours where wants have room to form. A bored child inventing a game is running the exact process the exam later tests as Volition.",
           "Mental arithmetic, memorized poems, drawing maps of the neighborhood — not nostalgia, but the internal-model starter kit. What never gets built can't later notice the machine is wrong.",
           "Make things badly by hand — mud, paper, code, cardboard. Production teaches what choices cost, which is where Taste eventually comes from."
+        ],
+        actions: [
+          "📖 Read together 20 minutes nightly, and finish every book you start — the finishing is the lesson; aim for a whole chapter book a month by age 8.",
+          "🕳️ One boredom afternoon a week: unscheduled, unscreened, unrescued. If they whine for an hour and then invent a game, it worked.",
+          "🧮 Five minutes of mental math or memory play daily (dinner-table sums, capital cities, poem lines) — as a game, never a chore.",
+          "🎨 One hand-made project a month — fort, comic, birdhouse, cardboard machine — finished and displayed, however bad.",
+          "🚶 Once a week, let the child lead the way home: wrong turns included. Internal maps are built by being lost a little.",
+          "📵 Whole stories only: full movies, full books, no recap videos of things they could experience firsthand."
         ]
       },
       {
@@ -945,6 +953,14 @@ const ROADMAPS = [
           "Struggle-first homework policy: the unassisted attempt happens before the assistant is allowed in the room. Grade the attempt, not just the polished result.",
           "Provenance as a family game: who made this? how do we know? what did the summary drop? Children who play trace-the-claim at 12 don't get stampeded at 30.",
           "First ownership: a pet, a stall, a team position — small decisions with real consequences that can't be undone by regenerating."
+        ],
+        actions: [
+          "🛠️ The 20-minute rule, every homework session: unassisted attempt first, assistant after — and grade the attempt at home even when school doesn't.",
+          "🔍 One provenance game a week at dinner: pick something from their feed and trace it together — who made this, how would we know, who benefits?",
+          "🎵 One no-tool craft sustained all year — instrument, sport, woodshop, drawing — with a performance or exhibit at the end.",
+          "🐕 Hand over one real responsibility with real stakes (a pet, a garden plot, a market stall) and do not quietly rescue it.",
+          "✈️ On the yearly family trip, the kid plans and navigates one full day — budget, route, recovery from whatever goes wrong.",
+          "💰 A quarterly allowance managed to zero: spending decisions with consequences beat any lecture on judgment."
         ]
       },
       {
@@ -956,6 +972,13 @@ const ROADMAPS = [
           "The 'because' discipline: every strong preference gets articulated. Essays, arguments at dinner, defended choices — taste is intuition that survived interrogation.",
           "Civic reasoning as the machines enter governance: let them watch you vote, verify, and dissent. The referendum questions of 2045 are on their exam because they'll be on their ballot.",
           "Start the override ledger: a journal of every time they disagreed with an advisor — what they believed, why, and what happened. Calibration takes a decade; start it at 16."
+        ],
+        actions: [
+          "🎭 One unfitted cultural outing a month — a concert, museum, or genre their profile would never serve them — and talk about what they hated and why.",
+          "✍️ One 'because' page a week: a strong opinion defended in writing, read aloud, and argued at the table.",
+          "🗳️ Follow one civic issue a year all the way to its vote together — verify one claim about it weekly from primary sources.",
+          "📓 The override ledger starts on their 16th birthday: one entry per disagreement with any advisor, reviewed together twice a year.",
+          "🚢 Ship one thing publicly per year — a zine, an app, a performance, a stall — where strangers can judge it and some do."
         ]
       },
       {
@@ -966,6 +989,13 @@ const ROADMAPS = [
           "The portfolio that matters is owned outcomes, not credentials: things they decided, signed, and answered for — machine-assisted throughout, human-authored throughout.",
           "Apprentice under people who sign things: the last generation that remembers both sides of the transition is still working, and what they carry doesn't compress into training data.",
           "Sit the Entry Exam with an unfair advantage: a childhood that accidentally was the curriculum."
+        ],
+        actions: [
+          "🖊️ Own one outcome per semester — something decided, signed, and answered for — and keep the list; it IS the résumé now.",
+          "🤝 Apprentice under someone who signs things: one monthly hour of their time is worth a year of courses.",
+          "📖 Lock the whole-book habit at one a month before the first job makes it feel impossible.",
+          "💪 Start strength training 2–3× a week at 22, not 52 — the elders on this page are maintaining what this decade builds.",
+          "📋 Sit the exam yearly and watch the six-axis profile move: train the lagging faculty each year on purpose."
         ]
       }
     ],
@@ -987,6 +1017,14 @@ const ROADMAPS = [
           "Ride the window: right now a junior with agents outproduces a senior without them. Trade that surplus for scope — volunteer to own things you're officially too young to own, in rooms you're too junior to be in.",
           "Start the override ledger on day one of your first job: every disagreement with a system, logged and scored. In ten years that ledger IS your seniority.",
           "Estimate before you query, draft before you generate — daily naked reps in your own field, small enough to be survivable, regular enough to compound."
+        ],
+        actions: [
+          "📓 Start the override ledger in week one of the first job: an entry per disagreement with any tool or system, reviewed quarterly.",
+          "🎯 Once a quarter, volunteer to own something above your grade — a postmortem, a vendor call, a small launch — and answer for it by name.",
+          "📖 One whole load-bearing document a week (a spec, a contract, a postmortem), summarizers off — become the one who knows what the digest dropped.",
+          "🛠️ One hour a week stress-testing the newest agents on your own work: map the frontier yourself instead of reading takes about it.",
+          "🤝 Book a monthly hour with two people senior enough to sign things — bring one real decision to each, and listen to how they carry it.",
+          "🧮 Estimate-before-query on every number that crosses your desk, daily: ten seconds each; the plausibility instinct is this decade's degree."
         ]
       },
       {
@@ -998,6 +1036,14 @@ const ROADMAPS = [
           "Pick a domain where being wrong is expensive — medicine, infrastructure, law, safety. Trust premiums concentrate where errors hurt, and trust is the one thing that can't be generated.",
           "Read whole things in your field while your peers read digests. In five years you'll be the one who notices what every summary in the room dropped.",
           "Build taste in public: choices with stated reasons, shipped under your name. 'Flawless' is free now; a defensible point of view is a career."
+        ],
+        actions: [
+          "📚 One hard fundamentals book or course a quarter in your domain, worked struggle-first — the slow route through deep structure, taken on purpose.",
+          "✍️ Publish monthly: a note, an essay, a teardown of something in your field, with your reasons attached. Taste compounds only in public.",
+          "💪 Strength training 3× a week starts now — the stamina the 2040s will bill you for is built in the 2020s, at a tenth of the price.",
+          "🗣️ Teach one thing a quarter: a brown-bag, a workshop, an onboarding — explaining is the cheapest test of whether you actually compiled it.",
+          "✈️ One witness trip a year to your industry's ground truth: the factory floor, the user's kitchen, the data center — see what the dashboards summarize.",
+          "🔌 One full Analog Day a month: draft, plan, and decide unassisted, and note what felt missing — that's your dependency map."
         ]
       },
       {
@@ -1009,6 +1055,13 @@ const ROADMAPS = [
           "Own objectives, not outputs: the humans who matter in 2035 are the ones who notice that every metric is a policy — and who answer for the metrics they set.",
           "The institutions being rebuilt around AI — courts, hospitals, agencies, councils — all need human seats: people who can hold 'who decided?' answerable. Those seats are being assigned to your cohort now.",
           "Keep civic grounding sharp: your generation votes through the era's worst persuasion weather. Refuse to be stampeded; verify out-of-band; hold the franchise like the load-bearing thing it is."
+        ],
+        actions: [
+          "🖊️ One signed outcome a quarter on the permanent record: decided by you, owned by you, survivable either way — the collection is the career.",
+          "📊 Audit one metric you own each quarter: what policy is it silently enacting, and would you sign that policy if it were written in words?",
+          "🏛️ Take one institutional seat and keep it — review board, standards body, school council — the human chairs of 2040 are being assigned to whoever shows up now.",
+          "📝 Publish one wrong-call postmortem a year under your own name: calibrated courage is built from honest scorekeeping, and the reputation compounds.",
+          "🗳️ Every election season, verify the claim that moves you most through out-of-band sources before repeating or acting on it."
         ]
       },
       {
@@ -1019,6 +1072,12 @@ const ROADMAPS = [
           "You're the bridge generation: fluent with the machines, old enough to remember work before them. Arbitration, governance, and objective-setting roles converge on exactly that combination.",
           "Teach struggle-first to the 2021 cohort arriving under you — passing the interior forward is part of the job now.",
           "By the time the Entry Exam is standard, you're not taking it. You're the one whose signature it certifies people to sit beside."
+        ],
+        actions: [
+          "🎓 One formal teaching commitment a year — a course, a mentorship cohort, an apprentice — run struggle-first, the way you were (or wish you'd been) trained.",
+          "🧭 Say yes to two or three heavy chairs a year — arbitrations, ethics seats, objective-setting rooms — and no to the rest; depth of ownership beats breadth now.",
+          "✍️ Write down the before-times knowledge you carry — how work felt when humans did the whole loop — one essay a quarter; you're becoming primary source material.",
+          "📋 Sit the exam annually alongside your team, scores public within the group: nothing teaches accountability like the boss's radar chart on the wall."
         ]
       }
     ],
@@ -1040,6 +1099,14 @@ const ROADMAPS = [
           "Refuse both failure modes out loud: not 'I'm too old for this' (that's forfeiting your amplifier) and not 'the machine probably knows' (that's forfeiting yourself). You know what answers should look like. That's the whole game now.",
           "Reposition from producing to warranting: your value shifts from making the work to standing behind it. Start signing things — reviews, audits, approvals — while your domain model is at full strength.",
           "Mentor with machines, deliberately: junior + agent + your review is the highest-leverage trio in the 2026 economy, and you're the only irreplaceable corner of it."
+        ],
+        actions: [
+          "💪 Strength training 3× a week + zone-2 cardio 2×: grip strength and VO2max predict a working 80 better than any résumé line — reserve built before 60 compounds like savings.",
+          "✈️ Travel 2–3 times a year, at least one trip somewhere genuinely unfamiliar: navigate one full day of it unassisted. Novelty is plasticity training; foreign ground is grounding practice.",
+          "🧠 Adopt one new domain a year — a language, an instrument, a field — learned struggle-first: it keeps the learning machinery warm and keeps you honest about what your juniors feel.",
+          "🛠️ One hour a week hands-on with the newest tools, estimate-before-query: ride each tool wave instead of being caught under it.",
+          "😴 Protect 7–8 hours of sleep; hearing and vision checked yearly: the interior runs on the hardware.",
+          "🤝 Mentor two juniors at any given time: teaching is how compiled judgment stays liquid."
         ]
       },
       {
@@ -1051,6 +1118,14 @@ const ROADMAPS = [
           "Sell the 'because': younger deciders drowning in flawless options will pay for a defensible reason from someone whose taste has a track record. Curation-with-rationale is the late-career product.",
           "Become institutional ground truth: you remember why the guardrails were built, which 'unprecedented' situations have precedent, and what the org believed before the records were curated. Living provenance appreciates.",
           "Guard the physical plant: the binding constraint on working to 80 is stamina, not relevance. Health is a career investment now, not a retirement hobby."
+        ],
+        actions: [
+          "📖 One whole book a month, summarizers off, plus one frontier topic a quarter read from primary sources — then teach or publish your read of it: staying ahead of the crowd is a producing habit, not a subscription.",
+          "✈️ Two trips a year, one of them a witness trip: go stand where something is changing — a coastline, a factory floor, a border town — and return with ground truth no feed gave you.",
+          "💪 Add balance and mobility work to the lifting (falls end careers); yearly health audit where you form your own read of the numbers before opening the AI's interpretation.",
+          "🔌 One full Analog Day a month: your faculties are the product now — this is product maintenance.",
+          "🤝 Hold at least one warranting seat at all times (audit, arbitration, board, review) and keep the override ledger scored honestly.",
+          "🗣️ Say yes to speaking and writing invitations: visibility is how the verification economy finds you."
         ]
       },
       {
@@ -1062,6 +1137,13 @@ const ROADMAPS = [
           "The eldership economy is real demand, not charity: an aging 2045 wants humans for care, counsel, and witness — presence is the one deliverable that means nothing when generated.",
           "Civic eldership: you'll be among the last who remember the before. When the referendum says 'permanently,' you're the one in the room who can say why revocability was the whole point.",
           "Analog Days matter MORE after 70, not less: your compiled faculties are your livelihood; exercise them unassisted or watch the livelihood quietly expire before you do."
+        ],
+        actions: [
+          "✈️ Slow travel once or twice a year — longer stays, fewer flights — with an apprentice or grandchild along: travel becomes witness transfer.",
+          "💪 Walk daily; lift twice a week: muscle after 70 is spelled independence, and independence is spelled employability.",
+          "🧠 Write weekly — letters, memoir, essays, post-mortems: you are primary source material now, and the writing is the mental sharpening and the provenance work in one act.",
+          "🔌 Analog Day weekly: the unassisted hours are where you verify you're still the one doing the thinking.",
+          "🤝 Two or three heavy signatures a year, chosen deliberately — the chairs where presence is the deliverable — and decline the rest without guilt."
         ]
       }
     ],
