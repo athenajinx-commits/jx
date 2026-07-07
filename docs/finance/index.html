@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Family Finance</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="app">
+    <h1>💰 Family Finance</h1>
+    <span class="sub">net worth &amp; cash flow, kept on this device</span>
+    <span class="spacer"></span>
+    <button class="btn small" id="theme-btn" title="Cycle theme: auto / light / dark">Theme: auto</button>
+  </header>
+
+  <div class="banner" id="demo-banner" hidden>
+    Demo mode — sample data only, nothing is saved. Remove <code>#demo</code> from the URL to use your own data.
+  </div>
+
+  <nav class="tabs" id="tabs">
+    <button data-tab="dashboard" class="active">Dashboard</button>
+    <button data-tab="records">Records</button>
+    <button data-tab="categories">Categories</button>
+    <button data-tab="data">Data &amp; Backup</button>
+  </nav>
+
+  <main>
+
+    <section class="tab active" id="tab-dashboard">
+      <div id="dash-empty" hidden></div>
+      <div id="dash-body">
+        <div class="kpis" id="kpis"></div>
+
+        <div class="card">
+          <div class="card-head">
+            <h2>Asset allocation</h2>
+            <span class="spacer"></span>
+            <span class="hint" id="alloc-asof"></span>
+          </div>
+          <p class="card-sub">Latest balance of each holding, grouped by category</p>
+          <div class="chart-box" id="alloc-chart"></div>
+          <div class="legend" id="alloc-legend"></div>
+        </div>
+
+        <div class="filter-row" id="range-row">
+          <span class="flabel">Range</span>
+          <button data-months="12" class="active">Last 12 months</button>
+          <button data-months="24">Last 24 months</button>
+          <button data-months="0">All time</button>
+        </div>
+
+        <div class="chart-grid">
+          <div class="card">
+            <h2>Total assets over time</h2>
+            <p class="card-sub">Month-end value of all tracked holdings</p>
+            <div class="chart-box" id="trend-chart"></div>
+            <details class="tablev"><summary>Table view</summary>
+              <div class="table-scroll" id="trend-table"></div>
+            </details>
+          </div>
+          <div class="card">
+            <h2>Monthly cash flow</h2>
+            <p class="card-sub">Income received vs. expenses paid, per month</p>
+            <div class="chart-box" id="flow-chart"></div>
+            <div class="legend" id="flow-legend"></div>
+            <details class="tablev"><summary>Table view</summary>
+              <div class="table-scroll" id="flow-table"></div>
+            </details>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="tab" id="tab-records">
+      <div class="card">
+        <h2 id="rec-form-title">Add a record</h2>
+        <p class="card-sub">
+          For <strong>asset</strong> categories (deposit, stock, fund, bond…) enter the item's
+          <em>current balance</em> — the newest entry per item counts toward net worth, older ones become history.
+          For <strong>income</strong> and <strong>expense</strong> categories enter the <em>amount</em> of each event; they add up by month.
+        </p>
+        <form class="entry" id="rec-form">
+          <div class="field">
+            <label for="rec-date">Date</label>
+            <input type="date" id="rec-date" required>
+          </div>
+          <div class="field">
+            <label for="rec-cat">Category</label>
+            <select id="rec-cat" required></select>
+          </div>
+          <div class="field">
+            <label for="rec-item" id="rec-item-label">Item</label>
+            <input type="text" id="rec-item" placeholder="e.g. Salary — Alex" list="item-suggest" required maxlength="60">
+            <datalist id="item-suggest"></datalist>
+          </div>
+          <div class="field">
+            <label for="rec-amount" id="rec-amount-label">Amount</label>
+            <input type="number" id="rec-amount" step="0.01" required>
+          </div>
+          <div class="field">
+            <label for="rec-note">Note <span class="hint">(optional)</span></label>
+            <input type="text" id="rec-note" maxlength="120">
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn primary" id="rec-submit">Add</button>
+            <button type="button" class="btn" id="rec-cancel" hidden>Cancel</button>
+          </div>
+        </form>
+        <div class="msg" id="rec-msg"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <h2>All records</h2>
+          <span class="spacer"></span>
+          <input type="search" id="rec-search" placeholder="Filter by item, note, category…" style="max-width:260px">
+        </div>
+        <div class="table-scroll" id="rec-table"></div>
+      </div>
+    </section>
+
+    <section class="tab" id="tab-categories">
+      <div class="card">
+        <h2>Add a category</h2>
+        <p class="card-sub">Assets count toward net worth (balances). Income and expenses count toward monthly cash flow (amounts).</p>
+        <form class="inline-form" id="cat-form">
+          <div class="field">
+            <label for="cat-name">Name</label>
+            <input type="text" id="cat-name" required maxlength="40" placeholder="e.g. Real Estate">
+          </div>
+          <div class="field">
+            <label for="cat-kind">Type</label>
+            <select id="cat-kind">
+              <option value="asset">Asset (track balances)</option>
+              <option value="income">Income (track amounts)</option>
+              <option value="expense">Expense (track amounts)</option>
+            </select>
+          </div>
+          <button type="submit" class="btn primary">Add category</button>
+        </form>
+        <div class="msg" id="cat-msg"></div>
+      </div>
+      <div class="card">
+        <h2>Your categories</h2>
+        <p class="card-sub">Rename or retype freely. A category can be deleted only when it has no records.</p>
+        <div class="table-scroll" id="cat-table"></div>
+      </div>
+    </section>
+
+    <section class="tab" id="tab-data">
+      <div class="card">
+        <h2>Export encrypted snapshot</h2>
+        <p class="card-sub">
+          Downloads a <code>.finz</code> file encrypted with AES-256-GCM (key derived from your passphrase
+          via PBKDF2, 250,000 rounds). Opening the file shows only ciphertext — no amounts, names, or categories.
+          The passphrase is never stored: <strong>if you forget it, the snapshot cannot be recovered.</strong>
+        </p>
+        <form class="inline-form" id="exp-form">
+          <div class="field">
+            <label for="exp-pass">Passphrase (min 4 chars)</label>
+            <input type="password" id="exp-pass" autocomplete="new-password" required minlength="4">
+          </div>
+          <div class="field">
+            <label for="exp-pass2">Confirm passphrase</label>
+            <input type="password" id="exp-pass2" autocomplete="new-password" required minlength="4">
+          </div>
+          <button type="submit" class="btn primary">Export snapshot</button>
+        </form>
+        <div class="msg" id="exp-msg"></div>
+      </div>
+
+      <div class="card">
+        <h2>Import snapshot</h2>
+        <p class="card-sub">Restores a previously exported <code>.finz</code> file. This <strong>replaces</strong> everything currently in the app (you'll be asked to confirm).</p>
+        <form class="inline-form" id="imp-form">
+          <div class="field">
+            <label for="imp-file">Snapshot file</label>
+            <input type="file" id="imp-file" accept=".finz,text/plain" required>
+          </div>
+          <div class="field">
+            <label for="imp-pass">Passphrase</label>
+            <input type="password" id="imp-pass" autocomplete="off" required>
+          </div>
+          <button type="submit" class="btn primary">Import</button>
+        </form>
+        <div class="msg" id="imp-msg"></div>
+      </div>
+
+      <div class="card">
+        <h2>Settings</h2>
+        <form class="inline-form" id="set-form">
+          <div class="field">
+            <label for="set-currency">Currency symbol</label>
+            <input type="text" id="set-currency" maxlength="4" style="min-width:80px;width:80px">
+          </div>
+          <button type="submit" class="btn">Save</button>
+        </form>
+        <div class="msg" id="set-msg"></div>
+      </div>
+
+      <div class="card">
+        <h2>Danger zone</h2>
+        <p class="card-sub">Data lives only in this browser's local storage — export a snapshot before clearing or switching devices.</p>
+        <button class="btn danger" id="clear-btn">Erase all data on this device</button>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="app">
+    Data never leaves your browser · <a href="#demo" id="demo-link">view with sample data</a>
+  </footer>
+</div>
+
+<div id="tooltip" role="status"></div>
+<script src="app.js"></script>
+</body>
+</html>
