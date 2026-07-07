@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page Highlighter</title>
+<style>
+  :root {
+    --bg: #f6f4ef;
+    --ink: #2b2b28;
+    --muted: #8a877e;
+    --card: #ffffff;
+    --accent: #b98a2f;
+    --shadow: 0 2px 10px rgba(43, 43, 40, 0.08);
+    --shadow-lift: 0 24px 70px rgba(43, 43, 40, 0.45);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: Georgia, "Times New Roman", serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.6;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+
+  header {
+    max-width: 900px;
+    margin: 0 auto 1.5rem;
+    text-align: center;
+  }
+
+  header h1 { font-size: 2rem; }
+
+  header p {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin-top: 0.4rem;
+    font-family: system-ui, sans-serif;
+  }
+
+  /* ---- Toolbar ---- */
+  .toolbar {
+    max-width: 900px;
+    margin: 0 auto 1.25rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    justify-content: center;
+    align-items: center;
+    font-family: system-ui, sans-serif;
+  }
+
+  .btn {
+    border: 1px solid #d8d4c8;
+    background: var(--card);
+    color: var(--ink);
+    border-radius: 8px;
+    padding: 0.45rem 1rem;
+    font-size: 0.88rem;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+
+  .btn:hover { background: #fdfbf5; border-color: #c9c3b2; }
+
+  .btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  .mode-group { display: flex; }
+
+  .mode-group .btn { border-radius: 0; }
+  .mode-group .btn:first-child { border-radius: 8px 0 0 8px; }
+  .mode-group .btn:last-child { border-radius: 0 8px 8px 0; border-left: none; }
+
+  .mode-group .btn.active {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: #fff;
+  }
+
+  .hint {
+    max-width: 900px;
+    margin: 0 auto 1rem;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-family: system-ui, sans-serif;
+    min-height: 1.2em;
+  }
+
+  /* ---- Stages ---- */
+  #stages {
+    max-width: 900px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  .stage-block { width: fit-content; max-width: 100%; margin: 0 auto; }
+
+  .stage-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    font-family: system-ui, sans-serif;
+    font-size: 0.82rem;
+    color: var(--muted);
+    padding: 0 0.25rem 0.35rem;
+  }
+
+  .stage-head .name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .stage-head button {
+    border: none;
+    background: none;
+    color: var(--muted);
+    font-size: 0.82rem;
+    cursor: pointer;
+    font-family: inherit;
+  }
+
+  .stage-head button:hover { color: #b04a3a; }
+
+  .stage {
+    position: relative;
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .stage img {
+    display: block;
+    max-width: 100%;
+    border-radius: 10px;
+    pointer-events: none;
+  }
+
+  .stage.define { cursor: crosshair; }
+
+  /* ---- Dropzone ---- */
+  #dropzone {
+    max-width: 900px;
+    margin: 2rem auto 0;
+    border: 2px dashed #cfc9b8;
+    border-radius: 14px;
+    background: var(--card);
+    padding: 3.5rem 2rem;
+    text-align: center;
+    color: var(--muted);
+    font-family: system-ui, sans-serif;
+    cursor: pointer;
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+
+  #dropzone.compact { padding: 1.4rem 2rem; }
+
+  #dropzone.dragover { border-color: var(--accent); background: #fdf8ec; }
+
+  #dropzone strong { color: var(--ink); }
+
+  /* ---- Areas ---- */
+  .area {
+    position: absolute;
+    border: 2px solid rgba(185, 138, 47, 0.9);
+    border-radius: 6px;
+    background-repeat: no-repeat;
+    touch-action: none;
+  }
+
+  .define .area { border-style: dashed; cursor: default; }
+
+  .view .area {
+    cursor: zoom-in;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+
+  .view .area:hover:not(.enlarged) {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px rgba(185, 138, 47, 0.25);
+  }
+
+  .area.enlarged {
+    cursor: zoom-out;
+    z-index: 100;
+    border-style: solid;
+    box-shadow: var(--shadow-lift);
+  }
+
+  .area.animating {
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.35s ease;
+    will-change: transform;
+  }
+
+  .area.drafting {
+    border-style: solid;
+    background: rgba(185, 138, 47, 0.15) !important;
+  }
+
+  .area .del {
+    position: absolute;
+    top: -11px;
+    right: -11px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: var(--ink);
+    color: #fff;
+    font-size: 13px;
+    line-height: 22px;
+    text-align: center;
+    cursor: pointer;
+    display: none;
+    font-family: system-ui, sans-serif;
+  }
+
+  .define .area .del { display: block; }
+
+  .area .tag {
+    position: absolute;
+    top: -10px;
+    left: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-family: system-ui, sans-serif;
+    font-size: 11px;
+    line-height: 1;
+    padding: 3px 7px;
+    border-radius: 999px;
+    pointer-events: none;
+  }
+
+  .enlarged .tag { display: none; }
+
+  /* ---- Backdrop ---- */
+  #backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(30, 28, 22, 0.6);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.35s ease;
+    z-index: 50;
+  }
+
+  #backdrop.visible { opacity: 1; pointer-events: auto; cursor: zoom-out; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Page Highlighter</h1>
+  <p>Upload images, define areas on them, then click an area to enlarge it — click again to put it back.</p>
+</header>
+
+<div class="toolbar">
+  <button class="btn primary" id="uploadBtn">Add images</button>
+  <input type="file" id="fileInput" accept="image/*" multiple hidden>
+  <span class="mode-group">
+    <button class="btn active" id="defineBtn">✏️ Define areas</button>
+    <button class="btn" id="viewBtn">🔍 View</button>
+  </span>
+  <button class="btn" id="clearBtn">Clear areas</button>
+</div>
+
+<p class="hint" id="hint">Upload, drop, or paste images to begin.</p>
+
+<div id="backdrop"></div>
+
+<div id="stages"></div>
+
+<div id="dropzone">
+  <strong>Drop images here</strong><br>
+  or click to choose files &middot; you can also paste from the clipboard
+</div>
+
+<script>
+(() => {
+  const stagesEl = document.getElementById('stages');
+  const dropzone = document.getElementById('dropzone');
+  const backdrop = document.getElementById('backdrop');
+  const hint = document.getElementById('hint');
+  const fileInput = document.getElementById('fileInput');
+  const defineBtn = document.getElementById('defineBtn');
+  const viewBtn = document.getElementById('viewBtn');
+
+  const MAX_SCALE = 4;
+  const VIEWPORT_FILL = 0.9;
+  const MIN_DRAW_PX = 14;
+
+  const images = [];   // {url, name, areas: [{x,y,w,h} fractions], stage, img}
+  let mode = 'define';
+  let active = null;   // currently enlarged element
+
+  /* ---------- Image loading ---------- */
+
+  function addFiles(files) {
+    [...files].filter(f => f && f.type.startsWith('image/')).forEach(addImage);
+  }
+
+  function addImage(file) {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const rec = { url, name: file.name || 'pasted image', areas: [], img };
+      buildStage(rec);
+      images.push(rec);
+      dropzone.classList.add('compact');
+      setMode(mode);
+    };
+    img.src = url;
+  }
+
+  function buildStage(rec) {
+    const block = document.createElement('div');
+    block.className = 'stage-block';
+
+    const head = document.createElement('div');
+    head.className = 'stage-head';
+    const name = document.createElement('span');
+    name.className = 'name';
+    name.textContent = rec.name;
+    const remove = document.createElement('button');
+    remove.textContent = '✕ remove image';
+    remove.addEventListener('click', () => {
+      if (active) restore(active);
+      URL.revokeObjectURL(rec.url);
+      images.splice(images.indexOf(rec), 1);
+      block.remove();
+      if (!images.length) dropzone.classList.remove('compact');
+      setMode(mode);
+    });
+    head.append(name, remove);
+
+    const stage = document.createElement('div');
+    stage.className = 'stage';
+    rec.img.alt = rec.name;
+    stage.appendChild(rec.img);
+    rec.stage = stage;
+
+    attachDrawing(rec);
+    block.append(head, stage);
+    stagesEl.appendChild(block);
+  }
+
+  document.getElementById('uploadBtn').addEventListener('click', () => fileInput.click());
+  dropzone.addEventListener('click', () => fileInput.click());
+  fileInput.addEventListener('change', () => { addFiles(fileInput.files); fileInput.value = ''; });
+
+  ['dragover', 'dragleave', 'drop'].forEach(ev =>
+    document.addEventListener(ev, e => {
+      e.preventDefault();
+      dropzone.classList.toggle('dragover', ev === 'dragover');
+      if (ev === 'drop') addFiles(e.dataTransfer.files);
+    })
+  );
+
+  document.addEventListener('paste', e => {
+    addFiles([...e.clipboardData.items]
+      .filter(i => i.type.startsWith('image/'))
+      .map(i => i.getAsFile()));
+  });
+
+  /* ---------- Modes ---------- */
+
+  function setMode(m) {
+    mode = m;
+    if (active) restore(active);
+    images.forEach(rec => {
+      rec.stage.classList.toggle('define', m === 'define');
+      rec.stage.classList.toggle('view', m === 'view');
+      renderAreas(rec);
+    });
+    defineBtn.classList.toggle('active', m === 'define');
+    viewBtn.classList.toggle('active', m === 'view');
+    const total = images.reduce((n, r) => n + r.areas.length, 0);
+    hint.textContent = !images.length
+      ? 'Upload, drop, or paste images to begin.'
+      : m === 'define'
+        ? 'Drag on an image to draw an area. Use ✕ to remove one, then switch to View.'
+        : total
+          ? 'Click an area to enlarge it. Click again, click the backdrop, or press Esc to put it back.'
+          : 'No areas defined yet — switch to Define areas and drag on an image.';
+  }
+
+  defineBtn.addEventListener('click', () => setMode('define'));
+  viewBtn.addEventListener('click', () => setMode('view'));
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    if (active) restore(active);
+    images.forEach(rec => { rec.areas = []; });
+    setMode(mode);
+  });
+
+  /* ---------- Rendering ---------- */
+
+  function renderAreas(rec) {
+    rec.stage.querySelectorAll('.area').forEach(el => el.remove());
+    const W = rec.img.clientWidth, H = rec.img.clientHeight;
+    rec.areas.forEach((a, i) => {
+      const el = document.createElement('div');
+      el.className = 'area';
+      el.style.left = a.x * W + 'px';
+      el.style.top = a.y * H + 'px';
+      el.style.width = a.w * W + 'px';
+      el.style.height = a.h * H + 'px';
+      // The area carries its own crop of the image so it stays
+      // filled while it travels to the center of the screen.
+      el.style.backgroundImage = `url("${rec.url}")`;
+      el.style.backgroundSize = `${W}px ${H}px`;
+      el.style.backgroundPosition = `${-a.x * W}px ${-a.y * H}px`;
+
+      const tag = document.createElement('span');
+      tag.className = 'tag';
+      tag.textContent = i + 1;
+      el.appendChild(tag);
+
+      const del = document.createElement('button');
+      del.className = 'del';
+      del.textContent = '✕';
+      del.title = 'Remove this area';
+      del.addEventListener('pointerdown', e => e.stopPropagation());
+      del.addEventListener('click', e => {
+        e.stopPropagation();
+        rec.areas.splice(i, 1);
+        renderAreas(rec);
+      });
+      el.appendChild(del);
+
+      el.addEventListener('click', () => { if (mode === 'view') toggle(el); });
+      rec.stage.appendChild(el);
+    });
+  }
+
+  /* ---------- Drawing areas (define mode) ---------- */
+
+  function attachDrawing(rec) {
+    const stage = rec.stage;
+    let draft = null;
+
+    stage.addEventListener('pointerdown', e => {
+      if (mode !== 'define' || e.button !== 0 || e.target.closest('.del')) return;
+      const r = stage.getBoundingClientRect();
+      draft = {
+        x0: e.clientX - r.left,
+        y0: e.clientY - r.top,
+        el: document.createElement('div')
+      };
+      draft.el.className = 'area drafting';
+      stage.appendChild(draft.el);
+      try { stage.setPointerCapture(e.pointerId); } catch {}
+    });
+
+    stage.addEventListener('pointermove', e => {
+      if (!draft) return;
+      const r = stage.getBoundingClientRect();
+      const x1 = Math.min(Math.max(e.clientX - r.left, 0), r.width);
+      const y1 = Math.min(Math.max(e.clientY - r.top, 0), r.height);
+      const x = Math.min(draft.x0, x1), y = Math.min(draft.y0, y1);
+      draft.w = Math.abs(x1 - draft.x0);
+      draft.h = Math.abs(y1 - draft.y0);
+      draft.x = x; draft.y = y;
+      Object.assign(draft.el.style, {
+        left: x + 'px', top: y + 'px',
+        width: draft.w + 'px', height: draft.h + 'px'
+      });
+    });
+
+    stage.addEventListener('pointerup', () => {
+      if (!draft) return;
+      const W = rec.img.clientWidth, H = rec.img.clientHeight;
+      if (draft.w >= MIN_DRAW_PX && draft.h >= MIN_DRAW_PX) {
+        rec.areas.push({ x: draft.x / W, y: draft.y / H, w: draft.w / W, h: draft.h / H });
+      }
+      draft.el.remove();
+      draft = null;
+      renderAreas(rec);
+      setMode(mode);
+    });
+  }
+
+  /* ---------- Enlarge / restore ---------- */
+
+  function enlarge(el) {
+    const rect = el.getBoundingClientRect();
+    const vw = window.innerWidth, vh = window.innerHeight;
+    const scale = Math.min(
+      MAX_SCALE,
+      (vw * VIEWPORT_FILL) / rect.width,
+      (vh * VIEWPORT_FILL) / rect.height
+    );
+    const dx = vw / 2 - (rect.left + rect.width / 2);
+    const dy = vh / 2 - (rect.top + rect.height / 2);
+    el.classList.add('enlarged', 'animating');
+    el.style.transform = `translate(${dx}px, ${dy}px) scale(${scale})`;
+    backdrop.classList.add('visible');
+    active = el;
+  }
+
+  function restore(el) {
+    el.style.transform = '';
+    el.classList.remove('enlarged');
+    backdrop.classList.remove('visible');
+    el.addEventListener('transitionend', function done(e) {
+      if (e.propertyName === 'transform') {
+        el.classList.remove('animating');
+        el.removeEventListener('transitionend', done);
+      }
+    });
+    active = null;
+  }
+
+  function toggle(el) {
+    if (active === el) {
+      restore(el);
+    } else {
+      if (active) restore(active);
+      enlarge(el);
+    }
+  }
+
+  backdrop.addEventListener('click', () => { if (active) restore(active); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && active) restore(active);
+  });
+
+  window.addEventListener('resize', () => {
+    if (active) restore(active);
+    images.forEach(renderAreas);
+  });
+})();
+</script>
+
+</body>
+</html>

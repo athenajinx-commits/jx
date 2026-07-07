@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Orbit — a tiny gravity sandbox</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="stars"></canvas>
+  <canvas id="trails"></canvas>
+  <canvas id="main"></canvas>
+
+  <header class="hud">
+    <h1>ORBIT</h1>
+    <p class="tagline">a tiny gravity sandbox</p>
+    <div class="stats">
+      <span><b id="stat-bodies">0</b> bodies</span>
+      <span><b id="stat-launched">0</b> launched</span>
+      <span><b id="stat-eaten">0</b> devoured</span>
+      <span><b id="stat-escaped">0</b> escaped</span>
+      <span><b id="stat-years">0.0</b> yr</span>
+    </div>
+  </header>
+
+  <div id="hint">drag to sling a planet into orbit &nbsp;·&nbsp; click to drop one and watch it fall</div>
+  <div id="paused-badge">paused — press space</div>
+
+  <nav class="controls">
+    <div class="group">
+      <label>gravity <input type="range" id="ctl-gravity" min="0.2" max="3" step="0.05" value="1"></label>
+      <label>speed <input type="range" id="ctl-speed" min="0" max="3" step="0.05" value="1"></label>
+    </div>
+    <div class="group">
+      <button id="btn-serene" title="one sun, calm orbits">serene</button>
+      <button id="btn-binary" title="two suns waltzing">binary</button>
+      <button id="btn-chaos" title="sixteen bodies, no promises">chaos</button>
+    </div>
+    <div class="group">
+      <button id="btn-trails" class="on" title="toggle trails">trails</button>
+      <button id="btn-sound" class="on" title="toggle sound">sound</button>
+      <button id="btn-pause" title="space">pause</button>
+      <button id="btn-clear" title="remove all planets">clear</button>
+    </div>
+  </nav>
+
+  <script src="app.js"></script>
+</body>
+</html>
