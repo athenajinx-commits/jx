@@ -161,7 +161,168 @@ phrases: [
 ["Cố lên!","Good luck / Hang in there!","talk"],
 ["Từ từ thôi","Take it easy / Slow down","talk"],
 ["Tôi thích lắm","I like it a lot","talk"],
-["Hôm nay trời đẹp","The weather is nice today","talk"]
+["Hôm nay trời đẹp","The weather is nice today","talk"],
+["Chào buổi trưa","Good afternoon","greet"],
+["Chào buổi tối","Good evening","greet"],
+["Hẹn gặp lại sau","See you later","greet"],
+["Rất hân hạnh","Pleased to meet you (formal)","greet"],
+["Cảm ơn vì tất cả","Thank you for everything","greet"],
+["Xin mời","Please, go ahead","greet"],
+["Chúc một ngày tốt lành","Have a nice day","greet"],
+["Đây là bạn tôi","This is my friend","greet"],
+["Gặp lại bạn sau nhé","See you again","greet"],
+["Xin lỗi làm phiền bạn","Sorry to bother you","greet"],
+["Ở đây có mạng không?","Is there internet here?","travel"],
+["Tôi có thể đổi tiền ở đâu?","Where can I exchange money?","travel"],
+["Hiệu thuốc gần đây ở đâu?","Where is a pharmacy nearby?","travel"],
+["Gọi xe giúp tôi","Please call a taxi for me","travel"],
+["Tôi chụp ảnh được không?","May I take a photo?","travel"],
+["Tôi muốn nhận phòng","I'd like to check in","travel"],
+["Cái này là cái gì?","What is this?","travel"],
+["Có thể gửi hành lý ở đây không?","Can I leave my luggage here?","travel"],
+["Cho tôi xin hóa đơn","Receipt, please","travel"],
+["Tôi có thể mang về không?","Can I get this to go?","travel"],
+["Tôi sẽ cố gắng","I'll do my best","talk"],
+["Bạn ổn không?","Are you OK?","talk"],
+["Có chuyện gì vậy?","What's wrong?","talk"],
+["Đừng lo","Don't worry","talk"],
+["Không sao đâu","Never mind / It's fine","talk"],
+["Tôi không thể tin được","I can't believe it","talk"],
+["Tôi no rồi","I'm full","talk"],
+["Tôi mong chờ điều đó","I'm looking forward to it","talk"],
+["Tôi giật mình quá","That startled me","talk"],
+["Vui lên đi","Cheer up","talk"]
+],
+
+/* dialogues: multi-line exchanges that stay grouped together (unlike the
+   shuffled phrase deck) so learners practice sentences in the context they
+   actually occur in. Each line optionally carries `alt` — other equally
+   valid replies to the same prompt (e.g. "how are you" accepts both "I'm
+   doing well" and "I don't feel well") — all of which the dialogue
+   practice mode accepts as correct. */
+dialogues: [
+{
+id: "meet-friend", ico: "👋", title: "Gặp bạn bè — Meeting a Friend",
+roles: { A: "Lan", B: "Minh" },
+lines: [
+{ spk: "A", w: "Bạn khỏe không?", m: "How are you?" },
+{ spk: "B", w: "Tôi khỏe, cảm ơn. Còn bạn?", m: "I'm doing well, thanks. And you?",
+  alt: [["Tôi không khỏe lắm.","I don't feel well."],
+        ["Cũng tạm được.","So-so."],
+        ["Không tệ.","Not bad."]] },
+{ spk: "A", w: "Tôi cũng khỏe. Dạo này bạn có bận không?", m: "I'm good too. Have you been busy lately?" },
+{ spk: "B", w: "Hơi bận, nhiều việc lắm.", m: "A bit busy, lots of work.",
+  alt: [["Không bận lắm, khá thoải mái.","Not too busy, pretty relaxed."]] },
+{ spk: "A", w: "Cuối tuần bạn có rảnh không? Chúng ta đi ăn nhé.", m: "Are you free this weekend? Let's eat together." },
+{ spk: "B", w: "Được đó, không vấn đề gì!", m: "Sure, no problem!",
+  alt: [["Tuần này không được, tuần sau thì sao?","This week doesn't work, how about next week?"]] },
+{ spk: "A", w: "Vậy nhé. Hẹn gặp lại!", m: "It's settled then. Bye!" },
+{ spk: "B", w: "Hẹn gặp lại!", m: "Bye!" }
+]
+},
+{
+id: "restaurant", ico: "🍜", title: "Ở nhà hàng — At the Restaurant",
+roles: { A: "Waiter", B: "Customer" },
+lines: [
+{ spk: "A", w: "Chào bạn, quý khách đi mấy người?", m: "Welcome, how many people?" },
+{ spk: "B", w: "Hai người, cảm ơn.", m: "Two people, thanks." },
+{ spk: "A", w: "Đây là thực đơn, quý khách muốn uống gì?", m: "Here's the menu, what would you like to drink?" },
+{ spk: "B", w: "Cho tôi một tách trà, cảm ơn.", m: "I'll have a cup of tea, thanks.",
+  alt: [["Cho tôi một ly nước là được rồi.","Just give me a glass of water."]] },
+{ spk: "A", w: "Quý khách muốn ăn gì?", m: "What would you like to eat?" },
+{ spk: "B", w: "Cho tôi một tô phở, không cay.", m: "I'll have a bowl of phở, not spicy.",
+  alt: [["Cho chúng tôi hai phần bánh cuốn và một phần cơm.","We'll have two bánh cuốn and a rice."]] },
+{ spk: "A", w: "Vâng, xin chờ một chút.", m: "OK, please wait a moment." },
+{ spk: "B", w: "Tính tiền, cảm ơn.", m: "Check, please." },
+{ spk: "A", w: "Tổng cộng là ba mươi lăm nghìn.", m: "That's 35 thousand dong total." }
+]
+},
+{
+id: "directions", ico: "🧭", title: "Hỏi đường — Asking for Directions",
+roles: { A: "You", B: "Local" },
+lines: [
+{ spk: "A", w: "Xin lỗi, đi đến ga tàu thế nào ạ?", m: "Excuse me, how do I get to the train station?" },
+{ spk: "B", w: "Đi thẳng, rồi rẽ trái.", m: "Go straight, then turn left.",
+  alt: [["Bạn có thể đi xe buýt, rất tiện.","You can take the bus, it's convenient."]] },
+{ spk: "A", w: "Có xa không?", m: "Is it far?" },
+{ spk: "B", w: "Không xa, đi bộ khoảng mười phút.", m: "Not far, about 10 minutes on foot.",
+  alt: [["Hơi xa, tốt nhất nên đi xe.","A bit far, better to take a ride."]] },
+{ spk: "A", w: "Cảm ơn bạn đã giúp đỡ!", m: "Thanks for your help!" },
+{ spk: "B", w: "Không có gì, chúc bạn đi đường vui vẻ!", m: "You're welcome, have a nice trip!" }
+]
+},
+{
+id: "shopping", ico: "🛍️", title: "Mua sắm — Shopping",
+roles: { A: "Customer", B: "Seller" },
+lines: [
+{ spk: "A", w: "Cái áo này bao nhiêu tiền?", m: "How much is this piece of clothing?" },
+{ spk: "B", w: "Một trăm nghìn.", m: "100 thousand dong." },
+{ spk: "A", w: "Đắt quá! Giảm giá được không?", m: "Too expensive! Can you lower the price?" },
+{ spk: "B", w: "Được rồi, tám mươi nghìn cho bạn.", m: "OK, 80 thousand for you.",
+  alt: [["Xin lỗi, giá này đã rất rẻ rồi.","Sorry, this price is already very low."]] },
+{ spk: "A", w: "Có thể trả bằng thẻ không?", m: "Can I pay by card?" },
+{ spk: "B", w: "Được, cũng có thể trả bằng điện thoại.", m: "Yes, you can also pay by phone." },
+{ spk: "A", w: "Được, tôi lấy cái này.", m: "OK, I'll take this one." }
+]
+},
+{
+id: "doctor", ico: "🏥", title: "Khám bệnh — At the Doctor's",
+roles: { A: "Doctor", B: "Patient" },
+lines: [
+{ spk: "A", w: "Bạn bị làm sao? Chỗ nào không khỏe?", m: "What's wrong? Where does it hurt?" },
+{ spk: "B", w: "Tôi bị đau đầu, còn hơi sốt nữa.", m: "I have a headache, and a bit of a fever.",
+  alt: [["Tôi bị đau bụng, rất khó chịu.","My stomach hurts, I feel very unwell."],
+        ["Tôi chỉ hơi mệt thôi, không có vấn đề gì lớn.","I'm just a bit tired, nothing serious."]] },
+{ spk: "A", w: "Bạn bị cảm bao lâu rồi?", m: "How long have you had this cold?" },
+{ spk: "B", w: "Hai ngày rồi.", m: "Two days." },
+{ spk: "A", w: "Đây là thuốc, một ngày uống ba lần. Uống nhiều nước, nghỉ ngơi nhiều.", m: "Here's medicine, take it three times a day. Drink lots of water and rest." },
+{ spk: "B", w: "Cảm ơn bác sĩ.", m: "Thank you, doctor." }
+]
+},
+{
+id: "phone-call", ico: "📞", title: "Gọi điện hẹn bạn — Making Plans by Phone",
+roles: { A: "Lan", B: "Minh" },
+lines: [
+{ spk: "A", w: "Alô, có phải Minh không?", m: "Hello, is this Minh?" },
+{ spk: "B", w: "Tôi đây, ai vậy?", m: "This is me, who's this?" },
+{ spk: "A", w: "Tôi là Lan. Tối nay bạn có rảnh không?", m: "This is Lan. Are you free tonight?" },
+{ spk: "B", w: "Rảnh, có chuyện gì vậy?", m: "I'm free, what's up?",
+  alt: [["Hôm nay không được, tôi phải làm thêm giờ.","Not today, I have to work overtime."]] },
+{ spk: "A", w: "Chúng ta đi xem phim nhé.", m: "Let's watch a movie together." },
+{ spk: "B", w: "Ý kiến hay đó! Mấy giờ gặp nhau?", m: "Great idea! What time shall we meet?" },
+{ spk: "A", w: "Bảy giờ tối, chỗ cũ nhé.", m: "7pm, see you at the usual place." },
+{ spk: "B", w: "Được, lát nữa gặp!", m: "OK, see you soon!" }
+]
+},
+{
+id: "self-intro", ico: "🙋", title: "Tự giới thiệu — Introducing Yourself",
+roles: { A: "David", B: "Mai" },
+lines: [
+{ spk: "A", w: "Chào bạn, tôi tên là David. Bạn tên là gì?", m: "Hi, I'm David. What's your name?" },
+{ spk: "B", w: "Tôi tên là Mai. Rất vui được gặp bạn.", m: "I'm Mai. Nice to meet you." },
+{ spk: "A", w: "Bạn là người nước nào?", m: "Where are you from?" },
+{ spk: "B", w: "Tôi là người Việt Nam, còn bạn?", m: "I'm Vietnamese, and you?",
+  alt: [["Tôi là người Mỹ, đến đây để làm việc.","I'm American, here for work."]] },
+{ spk: "A", w: "Tôi là người Mỹ. Bạn làm nghề gì?", m: "I'm American. What do you do for work?" },
+{ spk: "B", w: "Tôi là giáo viên. Còn bạn?", m: "I'm a teacher. And you?",
+  alt: [["Tôi là sinh viên, đang học tiếng Việt ở trường đại học.","I'm a student, studying Vietnamese at university."]] },
+{ spk: "A", w: "Tôi là bác sĩ.", m: "I'm a doctor." }
+]
+},
+{
+id: "hotel-checkin", ico: "🏨", title: "Nhận phòng khách sạn — Hotel Check-in",
+roles: { A: "Guest", B: "Staff" },
+lines: [
+{ spk: "A", w: "Chào bạn, tôi muốn nhận phòng.", m: "Hello, I'd like to check in." },
+{ spk: "B", w: "Xin cho biết tên của bạn ạ?", m: "May I have your name?" },
+{ spk: "A", w: "Tôi họ Nguyễn, Nguyễn Văn Minh.", m: "My surname is Nguyen, Nguyen Van Minh." },
+{ spk: "B", w: "Xin cho tôi xem hộ chiếu của bạn.", m: "Please show me your passport." },
+{ spk: "A", w: "Đây bạn.", m: "Here you go." },
+{ spk: "B", w: "Cảm ơn, phòng của bạn là số ba không năm.", m: "Thank you, your room is 305." },
+{ spk: "A", w: "Có mạng miễn phí không?", m: "Is there free internet?" },
+{ spk: "B", w: "Có, mật khẩu ở trên thẻ phòng.", m: "Yes, the password is on the room card." }
+]
+}
 ],
 
 grammar: [

@@ -1,129 +1,111 @@
-/* Tiếng Việt Quest — shared engine: word list, Telex IME, audio, state,
-   XP/streak/badges, toasts, theme. Load data.js before this file. */
+/* Zhōngwén Quest — shared engine: word list, pinyin tone-number IME, audio,
+   state, XP/streak/badges, toasts, theme. Load data.js before this file. */
 "use strict";
 
-/* ---------- word list ---------- */
-const VOCAB_RAW = window.TVQ_DATA.vocab;
-const PHRASES = window.TVQ_DATA.phrases.map(([w, m, cat]) => ({ id: "p:" + w, w, m, cat }));
-const GRAMMAR = window.TVQ_DATA.grammar;
-const DIALOGUES = window.TVQ_DATA.dialogues.map(d => ({
-  ...d,
-  lines: d.lines.map(l => ({ ...l, alt: (l.alt || []).map(([w, m]) => ({ w, m })) }))
-}));
-const LEVELS = ["A1", "A2", "B1"];
-const LEVEL_NAMES = { A1: "Beginner", A2: "Elementary", B1: "Intermediate" };
-const WORDS = [];
-for (const lv of LEVELS) for (const [w, m] of VOCAB_RAW[lv]) WORDS.push({ id: w, w, m, lv });
-const WORD_BY_ID = Object.fromEntries(WORDS.map(w => [w.id, w]));
-
 /* =====================================================================
-   TELEX IME — plain letters → Vietnamese
-   aa→â ee→ê oo→ô aw→ă ow→ơ uw/w→ư dd→đ · tones: s´ f` r̉ x˜ ẹj · z clears
+   PINYIN IME — tone numbers → accented pinyin
+   ni3 → nǐ · hao3 → hǎo · v → ü (nv3 → nǚ) · 5/0 or no number = neutral
+   The mark lands on the right vowel automatically (a/e first, ou → o,
+   otherwise the last vowel: guì, xiū, duō).
    ===================================================================== */
 /*IME-START*/
-const TONE_KEYS = { f: 1, s: 2, r: 3, x: 4, j: 5 };
-const TONE_TABLE = {
-  a: "aàáảãạ", "ă": "ăằắẳẵặ", "â": "âầấẩẫậ",
-  e: "eèéẻẽẹ", "ê": "êềếểễệ",
-  i: "iìíỉĩị",
-  o: "oòóỏõọ", "ô": "ôồốổỗộ", "ơ": "ơờớởỡợ",
-  u: "uùúủũụ", "ư": "ưừứửữự",
-  y: "yỳýỷỹỵ"
+const PY_TONES = {
+  a: "aāáǎà", e: "eēéěè", i: "iīíǐì", o: "oōóǒò", u: "uūúǔù", "ü": "üǖǘǚǜ"
 };
-const UNTONE = {};                       // toned char → [base char, tone 1-5]
-for (const [base, row] of Object.entries(TONE_TABLE))
-  [...row].forEach((ch, t) => { if (t) UNTONE[ch] = [base, t]; });
-const VOWELS = new Set(Object.keys(TONE_TABLE));
-const CIRCUMFLEX = { a: "â", e: "ê", o: "ô" };
-const HORN = { a: "ă", u: "ư" };         // o handled separately (uo+w → ươ)
-const MODIFIED = "ăâêôơư";
+const PY_UNTONE = {};                    // accented char → [base char, tone 1-4]
+for (const [base, row] of Object.entries(PY_TONES))
+  [...row].forEach((ch, t) => { if (t) PY_UNTONE[ch] = [base, t]; });
+const PY_VOWELS = new Set(Object.keys(PY_TONES));
+const pyIsVowel = c => PY_VOWELS.has(c) || PY_UNTONE[c] !== undefined;
+const pyBase = c => PY_UNTONE[c] ? PY_UNTONE[c][0] : c;
 
-/** Convert one Telex-typed syllable (letters only) to Vietnamese. */
-function telexSyllable(token) {
-  const out = [];
-  let tone = 0;
-  for (let ch of token) {
-    if (UNTONE[ch]) { tone = UNTONE[ch][1]; ch = UNTONE[ch][0]; }  // re-processing already-toned text
-    const prev = out[out.length - 1];
-    if (ch === "d" && prev === "d") { out[out.length - 1] = "đ"; continue; }
-    if (CIRCUMFLEX[ch] && prev === ch) { out[out.length - 1] = CIRCUMFLEX[ch]; continue; }
-    if (ch === "w") {
-      if (prev === "o") {
-        out[out.length - 1] = "ơ";
-        if (out[out.length - 2] === "u") out[out.length - 2] = "ư";   // uow → ươ
-      }
-      else if (HORN[prev]) out[out.length - 1] = HORN[prev];
-      else if (prev === "ư" || prev === "ơ" || prev === "ă") { /* repeated w — ignore */ }
-      else out.push("ư");
-      continue;
-    }
-    const hasVowel = out.some(c => VOWELS.has(c));
-    if (TONE_KEYS[ch] !== undefined && hasVowel) { tone = TONE_KEYS[ch]; continue; }
-    if (ch === "z" && hasVowel) { tone = 0; continue; }
-    out.push(ch);
-  }
-  return placeTone(out, tone);
+/** Apply a tone (1-5) to the vowel cluster that ends just before `chars.length`. */
+function pyApplyTone(chars, tone) {
+  let end = chars.length - 1;
+  while (end >= 0 && !pyIsVowel(chars[end])) end--;   // skip final n / ng / r
+  if (end < 0) return;
+  let start = end;
+  while (start > 0 && pyIsVowel(chars[start - 1])) start--;
+  for (let i = start; i <= end; i++) chars[i] = pyBase(chars[i]);  // retoning replaces
+  const cluster = chars.slice(start, end + 1).join("");
+  let at;
+  if (cluster.includes("a")) at = start + cluster.indexOf("a");
+  else if (cluster.includes("e")) at = start + cluster.indexOf("e");
+  else if (cluster.includes("ou")) at = start + cluster.indexOf("o");
+  else at = end;
+  if (tone >= 1 && tone <= 4) chars[at] = PY_TONES[chars[at]][tone];
+  // tone 5 / 0 = neutral: accents stripped, no mark added
 }
 
-/** Put the tone mark on the right vowel (traditional placement: hòa, thủy, khỏe). */
-function placeTone(chars, tone) {
-  if (tone) {
-    const vs = [];
-    for (let i = 0; i < chars.length; i++) {
-      if (!VOWELS.has(chars[i])) continue;
-      if (chars[i] === "u" && chars[i - 1] === "q") continue;        // qu- is the onset
-      vs.push(i);
+/** Convert tone-numbered pinyin to accented pinyin. Idempotent. */
+function pinyinConvert(str) {
+  const chars = [];
+  for (let ch of str.normalize("NFC")) {
+    if (/[A-Z]/.test(ch)) ch = ch.toLowerCase();
+    if (ch === "v") { chars.push("ü"); continue; }
+    if (/[0-5]/.test(ch)) {
+      const prev = chars[chars.length - 1];
+      if (prev && (pyIsVowel(prev) || /[a-z]/.test(prev))) { pyApplyTone(chars, +ch); continue; }
     }
-    if (chars[0] === "g" && vs.length > 1 && vs[0] === 1 && chars[1] === "i")
-      vs.shift();                                                    // gi- is the onset (già, giờ)
-    if (vs.length) {
-      let at = -1;
-      for (const i of vs) if (MODIFIED.includes(chars[i])) at = i;   // ê ô ơ â ă ư win (rightmost)
-      if (at < 0) {
-        const last = vs[vs.length - 1];
-        const hasFinal = last < chars.length - 1;                    // consonant after the vowels
-        at = (hasFinal || vs.length === 1) ? last : vs[vs.length - 2];
-      }
-      chars[at] = TONE_TABLE[chars[at]][tone];
-    }
+    chars.push(ch);
   }
   return chars.join("");
-}
-
-/** Convert every letter-run in a string; leaves spaces & punctuation alone. */
-function telexConvert(str) {
-  return str.replace(/[a-zA-ZÀ-ɏḀ-ỿ]+/g, tok => telexSyllable(tok.toLowerCase()));
 }
 /*IME-END*/
 
 /** Live-convert an input's value as the user types. */
-function wireTelexInput(input) {
+function wirePinyinInput(input) {
   input.addEventListener("input", () => {
-    const v = telexConvert(input.value.normalize("NFC"));
+    const v = pinyinConvert(input.value);
     if (v !== input.value) input.value = v;
   });
 }
-function finalizeTelex(value) {
-  return telexConvert(value.normalize("NFC")).trim();
+function finalizePinyin(value) {
+  return pinyinConvert(value).trim();
 }
 
-/* answer comparison: case, punctuation and spacing don't matter */
-const vnNorm = s => s.normalize("NFC").toLowerCase()
-  .replace(/[.,!?…;:'"“”‘’]/g, "").replace(/\s+/g, " ").trim();
-/* diacritic-blind form — used to say "letters right, marks wrong" */
-const vnFlat = s => vnNorm(s).normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/đ/g, "d");
+/* answer comparison: case, spaces, apostrophes and punctuation don't matter */
+const pyNorm = s => pinyinConvert(s).normalize("NFC").toLowerCase()
+  .replace(/[\s'’\-.,!?…;:"“”]/g, "");
+/* tone-blind form — used to say "letters right, tones wrong" */
+const pyFlat = s => pyNorm(s).normalize("NFD").replace(/[̀-ͯ]/g, "");
+
+/* ---------- word list ---------- */
+const VOCAB_RAW = window.ZWQ_DATA.vocab;
+const PHRASES = window.ZWQ_DATA.phrases.map(([k, rRaw, m, cat]) =>
+  ({ id: "p:" + k, k, r: pinyinConvert(rRaw), m, cat }));
+const GRAMMAR = window.ZWQ_DATA.grammar;
+for (const s of GRAMMAR) for (const it of s.items)
+  it.ex = it.ex.map(([h, p, e]) => [h, pinyinConvert(p), e]);
+const DIALOGUES = window.ZWQ_DATA.dialogues.map(d => ({
+  ...d,
+  lines: d.lines.map(l => ({
+    ...l,
+    py: pinyinConvert(l.py),
+    alt: (l.alt || []).map(([zh, py, en]) => ({ zh, py: pinyinConvert(py), en }))
+  }))
+}));
+const LEVELS = ["HSK1", "HSK2", "HSK3"];
+const LEVEL_NAMES = { HSK1: "Beginner", HSK2: "Elementary", HSK3: "Intermediate" };
+const WORDS = [];
+for (const lv of LEVELS) for (const [k, rRaw, m] of VOCAB_RAW[lv]) {
+  const r = pinyinConvert(rRaw);
+  WORDS.push({ id: k + "·" + r, k, r, m, lv });
+}
+const WORD_BY_ID = Object.fromEntries(WORDS.map(w => [w.id, w]));
 
 /* =====================================================================
    AUDIO — speech synthesis + tiny sound effects
    ===================================================================== */
-let viVoice = null;
+let zhVoice = null;
 function pickVoice() {
   const vs = window.speechSynthesis ? speechSynthesis.getVoices() : [];
-  viVoice = vs.find(v => v.lang.replace("_", "-").toLowerCase().startsWith("vi")) || null;
+  const zh = vs.filter(v => v.lang.replace("_", "-").toLowerCase().startsWith("zh"));
+  zhVoice = zh.find(v => v.lang.replace("_", "-").toLowerCase().startsWith("zh-cn")) || zh[0] || null;
   const el = document.getElementById("voiceStatus");
-  if (el) el.textContent = viVoice
-    ? `🗣️ Vietnamese voice: ${viVoice.name}`
-    : "⚠️ No Vietnamese voice found in this browser — audio features will be limited. Microsoft Edge usually includes one.";
+  if (el) el.textContent = zhVoice
+    ? `🗣️ Chinese voice: ${zhVoice.name}`
+    : "⚠️ No Chinese voice found in this browser — audio features will be limited. Chrome/Edge usually include one.";
 }
 if (window.speechSynthesis) {
   speechSynthesis.onvoiceschanged = pickVoice;
@@ -131,16 +113,16 @@ if (window.speechSynthesis) {
 }
 function speakWord(w, rateMul = 1) {
   if (!window.speechSynthesis) return;
-  const u = new SpeechSynthesisUtterance(w.w);
-  u.lang = "vi-VN";
-  if (viVoice) u.voice = viVoice;
+  const u = new SpeechSynthesisUtterance(w.k);   // TTS reads hanzi reliably
+  u.lang = "zh-CN";
+  if (zhVoice) u.voice = zhVoice;
   u.rate = state.settings.rate * rateMul;
   speechSynthesis.cancel();
   speechSynthesis.speak(u);
   state.stats.listens++;
 }
-function speakText(vn, rateMul = 1) {
-  speakWord({ w: vn }, rateMul);
+function speakText(zh, rateMul = 1) {
+  speakWord({ k: zh }, rateMul);
 }
 
 let audioCtx = null;
@@ -169,7 +151,7 @@ function sfx(kind) {
 /* =====================================================================
    STATE — autosaved to localStorage, portable via JSON export/import
    ===================================================================== */
-const SAVE_KEY = "tiengVietQuestV1";
+const SAVE_KEY = "zhongwenQuestV1";
 const defaultState = () => ({
   version: 1, xp: 0, streak: 0, lastActive: null, bestCombo: 0,
   stats: { cards: 0, quizzes: 0, perfect: 0, quizQ: 0, quizCorrect: 0,
@@ -191,7 +173,7 @@ function saveState() {
 }
 function applyImported(obj, announce) {
   if (!obj || typeof obj !== "object" || typeof obj.xp !== "number" || typeof obj.srs !== "object")
-    throw new Error("not a Tiếng Việt Quest save file");
+    throw new Error("not a Zhōngwén Quest save file");
   const d = defaultState();
   state = {
     ...d, ...obj,
@@ -216,8 +198,8 @@ function touchStreak() {
 
 /* ---------- XP & levels ---------- */
 const LEVEL_TITLES = [
-  [1, "Người mới · Newcomer"], [3, "Học viên · Student"], [5, "Du khách · Traveler"], [7, "Người bạn · Friend"],
-  [10, "Đầu bếp · Chef"], [13, "Giáo viên · Teacher"], [16, "Cao thủ · Expert"], [20, "Huyền thoại · Legend"]
+  [1, "新手 · Newcomer"], [3, "学生 · Student"], [5, "旅人 · Traveler"], [7, "侠客 · Wanderer"],
+  [10, "熊猫 · Panda"], [13, "老师 · Teacher"], [16, "大师 · Master"], [20, "神仙 · Immortal"]
 ];
 const xpForLevel = lv => 80 + (lv - 1) * 40;    // XP needed to clear level lv
 function levelInfo(xp) {
@@ -268,15 +250,15 @@ const BADGES = [
   { id: "c30", ico: "🌋", name: "Unstoppable", desc: "30 typing combo", test: s => s.bestCombo >= 30 },
   { id: "perfect", ico: "🏆", name: "Perfect!", desc: "Ace a quiz 10/10", test: s => s.stats.perfect >= 1 },
   { id: "quiz10", ico: "🧠", name: "Quiz Regular", desc: "Finish 10 quizzes", test: s => s.stats.quizzes >= 10 },
-  { id: "type100", ico: "⌨️", name: "Telex Ninja", desc: "Type 100 words right", test: s => s.stats.typedCorrect >= 100 },
+  { id: "type100", ico: "⌨️", name: "Pinyin Ninja", desc: "Type 100 words right", test: s => s.stats.typedCorrect >= 100 },
   { id: "phrase30", ico: "🗣️", name: "Smooth Talker", desc: "Type 30 phrases right", test: s => s.stats.phrases >= 30 },
   { id: "drill50", ico: "📐", name: "Grammar Geek", desc: "Clear 50 grammar drills", test: s => s.stats.drills >= 50 },
   { id: "dialogue5", ico: "🎭", name: "Storyteller", desc: "Complete 5 dialogues", test: s => s.stats.dialogues >= 5 },
   { id: "s3", ico: "📅", name: "Habit Forming", desc: "3-day streak", test: s => s.streak >= 3 },
   { id: "s7", ico: "🗓️", name: "One Week Strong", desc: "7-day streak", test: s => s.streak >= 7 },
-  { id: "s30", ico: "🪷", name: "Lotus Bloom", desc: "30-day streak", test: s => s.streak >= 30 },
-  { id: "lv5", ico: "🛵", name: "Scooter Rider", desc: "Reach level 5", test: s => levelInfo(s.xp).lv >= 5 },
-  { id: "lv10", ico: "🏮", name: "Lantern Master", desc: "Reach level 10", test: s => levelInfo(s.xp).lv >= 10 }
+  { id: "s30", ico: "🏮", name: "Lantern Festival", desc: "30-day streak", test: s => s.streak >= 30 },
+  { id: "lv5", ico: "🐼", name: "Panda Pal", desc: "Reach level 5", test: s => levelInfo(s.xp).lv >= 5 },
+  { id: "lv10", ico: "🐉", name: "Dragon Lord", desc: "Reach level 10", test: s => levelInfo(s.xp).lv >= 10 }
 ];
 function checkBadges() {
   for (const b of BADGES) {
@@ -303,7 +285,7 @@ function toast(msg) {
   setTimeout(() => t.remove(), 3200);
 }
 function confetti(n = 40) {
-  const colors = ["#cf3428", "#1baf7a", "#eda100", "#2a78d6", "#e87ba4", "#4a3aa7"];
+  const colors = ["#0e8f62", "#e34948", "#eda100", "#2a78d6", "#e87ba4", "#4a3aa7"];
   for (let i = 0; i < n; i++) {
     const c = document.createElement("div");
     c.className = "confetti-bit";
@@ -337,7 +319,7 @@ const shuffled = arr => [...arr].sort(() => Math.random() - 0.5);
 /* ---------- theme toggle ---------- */
 (function initTheme() {
   try {
-    const saved = localStorage.getItem("tiengVietTheme");
+    const saved = localStorage.getItem("zhongwenTheme");
     if (saved) document.documentElement.dataset.theme = saved;
   } catch (e) {}
   document.addEventListener("DOMContentLoaded", () => {
@@ -347,7 +329,7 @@ const shuffled = arr => [...arr].sort(() => Math.random() - 0.5);
       const root = document.documentElement;
       const cur = root.dataset.theme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
       root.dataset.theme = cur === "dark" ? "light" : "dark";
-      try { localStorage.setItem("tiengVietTheme", root.dataset.theme); } catch (e) {}
+      try { localStorage.setItem("zhongwenTheme", root.dataset.theme); } catch (e) {}
     });
   });
 })();

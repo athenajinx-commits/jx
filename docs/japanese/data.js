@@ -210,7 +210,169 @@ phrases: [
 ["おいしかったです","おいしかったです","That was delicious","talk"],
 ["久しぶりですね","ひさしぶりですね","Long time no see","talk"],
 ["お大事に","おだいじに","Get well soon","talk"],
-["頑張って","がんばって","Good luck / Hang in there","talk"]
+["頑張って","がんばって","Good luck / Hang in there","talk"],
+["どうも","どうも","Thanks / Hi (casual)","greet"],
+["こちらこそ","こちらこそ","Likewise / The pleasure is mine","greet"],
+["失礼します","しつれいします","Excuse me (entering / leaving)","greet"],
+["お先に失礼します","おさきにしつれいします","Excuse me for leaving first","greet"],
+["お邪魔します","おじゃまします","Excuse me for intruding (entering a home)","greet"],
+["お世話になりました","おせわになりました","Thank you for everything","greet"],
+["いらっしゃいませ","いらっしゃいませ","Welcome (said by staff)","greet"],
+["よいお年を","よいおとしを","Have a good new year","greet"],
+["お先にどうぞ","おさきにどうぞ","After you","greet"],
+["お疲れ様です","おつかれさまです","Thanks for your hard work","greet"],
+["Wi-Fiはありますか","わいふぁいはありますか","Is there Wi-Fi?","travel"],
+["両替できますか","りょうがえできますか","Can I exchange money?","travel"],
+["近くに薬局はありますか","ちかくにやっきょくはありますか","Is there a pharmacy nearby?","travel"],
+["タクシーを呼んでください","たくしーをよんでください","Please call a taxi","travel"],
+["写真を撮ってもいいですか","しゃしんをとってもいいですか","May I take a photo?","travel"],
+["チェックインをお願いします","ちぇっくいんをおねがいします","I'd like to check in","travel"],
+["これは何ですか","これはなんですか","What is this?","travel"],
+["道に迷いました","みちにまよいました","I'm lost","travel"],
+["荷物を預けてもいいですか","にもつをあずけてもいいですか","Can I leave my luggage?","travel"],
+["領収書をください","りょうしゅうしょをください","Receipt, please","travel"],
+["頑張ります","がんばります","I'll do my best","talk"],
+["大丈夫ですか","だいじょうぶですか","Are you OK?","talk"],
+["どうしたの","どうしたの","What's wrong?","talk"],
+["心配しないで","しんぱいしないで","Don't worry","talk"],
+["気にしないで","きにしないで","Never mind","talk"],
+["信じられない","しんじられない","I can't believe it","talk"],
+["お腹いっぱいです","おなかいっぱいです","I'm full","talk"],
+["楽しみです","たのしみです","I'm looking forward to it","talk"],
+["びっくりした","びっくりした","That surprised me","talk"],
+["元気出して","げんきだして","Cheer up","talk"]
+],
+
+/* dialogues: multi-line exchanges that stay grouped together (unlike the
+   shuffled phrase deck) so learners practice sentences in the context they
+   actually occur in. Each line optionally carries `alt` — other equally
+   valid replies to the same prompt (e.g. "how are you" accepts both "I'm
+   doing well" and "I don't feel well") — all of which the dialogue
+   practice mode accepts as correct. Triples are [kanji/kana, hiragana
+   reading, meaning], same shape as vocab/phrases. */
+dialogues: [
+{
+id: "meet-friend", ico: "👋", title: "友達に会う — Meeting a Friend",
+roles: { A: "けん", B: "みか" },
+lines: [
+{ spk: "A", k: "元気ですか。", r: "げんきですか。", m: "How are you?" },
+{ spk: "B", k: "元気です、ありがとう。あなたは？", r: "げんきです、ありがとう。あなたは？", m: "I'm doing well, thanks. And you?",
+  alt: [["あまり元気じゃないです。","あまりげんきじゃないです。","I don't feel well."],
+        ["まあまあです。","まあまあです。","So-so."],
+        ["悪くないです。","わるくないです。","Not bad."]] },
+{ spk: "A", k: "私も元気です。最近忙しいですか。", r: "わたしもげんきです。さいきんいそがしいですか。", m: "I'm good too. Have you been busy lately?" },
+{ spk: "B", k: "ちょっと忙しいです、仕事が多くて。", r: "ちょっといそがしいです、しごとがおおくて。", m: "A bit busy, lots of work.",
+  alt: [["あまり忙しくないです、けっこう暇です。","あまりいそがしくないです、けっこうひまです。","Not too busy, pretty relaxed."]] },
+{ spk: "A", k: "週末暇ですか。一緒にご飯を食べましょう。", r: "しゅうまつひまですか。いっしょにごはんをたべましょう。", m: "Are you free this weekend? Let's eat together." },
+{ spk: "B", k: "いいですね、大丈夫です！", r: "いいですね、だいじょうぶです！", m: "Sounds good, no problem!",
+  alt: [["今週はだめです、来週はどうですか。","こんしゅうはだめです、らいしゅうはどうですか。","This week doesn't work, how about next week?"]] },
+{ spk: "A", k: "じゃあ、決まりですね。またね！", r: "じゃあ、きまりですね。またね！", m: "It's settled then. Bye!" },
+{ spk: "B", k: "またね！", r: "またね！", m: "Bye!" }
+]
+},
+{
+id: "restaurant", ico: "🍜", title: "レストランで注文 — At the Restaurant",
+roles: { A: "Waiter", B: "Customer" },
+lines: [
+{ spk: "A", k: "いらっしゃいませ、何名様ですか。", r: "いらっしゃいませ、なんめいさまですか。", m: "Welcome, how many people?" },
+{ spk: "B", k: "二人です、お願いします。", r: "ふたりです、おねがいします。", m: "Two people, thanks." },
+{ spk: "A", k: "こちらメニューです、お飲み物は何にしますか。", r: "こちらめにゅーです、おのみものはなににしますか。", m: "Here's the menu, what would you like to drink?" },
+{ spk: "B", k: "お茶をください、ありがとう。", r: "おちゃをください、ありがとう。", m: "I'll have tea, thanks.",
+  alt: [["お水だけで大丈夫です。","おみずだけでだいじょうぶです。","Just water is fine."]] },
+{ spk: "A", k: "何を食べますか。", r: "なにをたべますか。", m: "What would you like to eat?" },
+{ spk: "B", k: "うどんをください、辛くないもので。", r: "うどんをください、からくないもので。", m: "I'll have udon, not spicy.",
+  alt: [["餃子二つとご飯を一つお願いします。","ぎょうざふたつとごはんをひとつおねがいします。","We'll have two dumplings and a rice."]] },
+{ spk: "A", k: "かしこまりました、少々お待ちください。", r: "かしこまりました、しょうしょうおまちください。", m: "Certainly, please wait a moment." },
+{ spk: "B", k: "お会計をお願いします。", r: "おかいけいをおねがいします。", m: "Check, please." },
+{ spk: "A", k: "全部で三千五百円です。", r: "ぜんぶでさんぜんごひゃくえんです。", m: "That's 3500 yen total." }
+]
+},
+{
+id: "directions", ico: "🧭", title: "道を聞く — Asking for Directions",
+roles: { A: "You", B: "Local" },
+lines: [
+{ spk: "A", k: "すみません、駅までどう行きますか。", r: "すみません、えきまでどういきますか。", m: "Excuse me, how do I get to the station?" },
+{ spk: "B", k: "まっすぐ行って、それから左に曲がってください。", r: "まっすぐいって、それからひだりにまがってください。", m: "Go straight, then turn left.",
+  alt: [["バスに乗るといいですよ、便利です。","ばすにのるといいですよ、べんりです。","You can take the bus, it's convenient."]] },
+{ spk: "A", k: "遠いですか。", r: "とおいですか。", m: "Is it far?" },
+{ spk: "B", k: "遠くないです、歩いて十分くらいです。", r: "とおくないです、あるいてじゅっぷんくらいです。", m: "Not far, about 10 minutes on foot.",
+  alt: [["ちょっと遠いです、車の方がいいですよ。","ちょっととおいです、くるまのほうがいいですよ。","A bit far, better to take a ride."]] },
+{ spk: "A", k: "手伝ってくれてありがとうございます！", r: "てつだってくれてありがとうございます！", m: "Thanks for your help!" },
+{ spk: "B", k: "どういたしまして、良い旅を！", r: "どういたしまして、よいたびを！", m: "You're welcome, have a nice trip!" }
+]
+},
+{
+id: "shopping", ico: "🛍️", title: "買い物 — Shopping",
+roles: { A: "Customer", B: "Seller" },
+lines: [
+{ spk: "A", k: "この服はいくらですか。", r: "このふくはいくらですか。", m: "How much is this piece of clothing?" },
+{ spk: "B", k: "千円です。", r: "せんえんです。", m: "1000 yen." },
+{ spk: "A", k: "ちょっと高いです、安くしてもらえますか。", r: "ちょっとたかいです、やすくしてもらえますか。", m: "A bit expensive, can you lower the price?" },
+{ spk: "B", k: "わかりました、八百円にします。", r: "わかりました、はっぴゃくえんにします。", m: "OK, I'll make it 800 yen.",
+  alt: [["すみません、これがもう一番安い値段です。","すみません、これがもういちばんやすいねだんです。","Sorry, this is already the lowest price."]] },
+{ spk: "A", k: "カードは使えますか。", r: "かーどはつかえますか。", m: "Can I use a card?" },
+{ spk: "B", k: "使えます、スマホでも払えますよ。", r: "つかえます、すまほでもはらえますよ。", m: "Yes, you can also pay by phone." },
+{ spk: "A", k: "じゃあ、これをください。", r: "じゃあ、これをください。", m: "OK, I'll take this one." }
+]
+},
+{
+id: "doctor", ico: "🏥", title: "病院で — At the Doctor's",
+roles: { A: "Doctor", B: "Patient" },
+lines: [
+{ spk: "A", k: "どうしましたか。どこが悪いですか。", r: "どうしましたか。どこがわるいですか。", m: "What's wrong? Where does it hurt?" },
+{ spk: "B", k: "頭が痛いです、それに少し熱があります。", r: "あたまがいたいです、それにすこしねつがあります。", m: "I have a headache, and a bit of a fever.",
+  alt: [["お腹が痛いです、とても辛いです。","おなかがいたいです、とてもつらいです。","My stomach hurts, I feel very unwell."],
+        ["ちょっと疲れているだけです、大きい問題はないです。","ちょっとつかれているだけです、おおきいもんだいはないです。","I'm just a bit tired, nothing serious."]] },
+{ spk: "A", k: "風邪はいつからですか。", r: "かぜはいつからですか。", m: "How long have you had this cold?" },
+{ spk: "B", k: "二日前からです。", r: "ふつかまえからです。", m: "Since two days ago." },
+{ spk: "A", k: "これは薬です、一日三回飲んでください。水をたくさん飲んで、よく休んでください。", r: "これはくすりです、いちにちさんかいのんでください。みずをたくさんのんで、よくやすんでください。", m: "Here's medicine, take it three times a day. Drink lots of water and rest well." },
+{ spk: "B", k: "ありがとうございます、先生。", r: "ありがとうございます、せんせい。", m: "Thank you, doctor." }
+]
+},
+{
+id: "phone-call", ico: "📞", title: "電話で友達を誘う — Making Plans by Phone",
+roles: { A: "けん", B: "ゆき" },
+lines: [
+{ spk: "A", k: "もしもし、ゆきさんですか。", r: "もしもし、ゆきさんですか。", m: "Hello, is this Yuki?" },
+{ spk: "B", k: "はい、そうです。どなたですか。", r: "はい、そうです。どなたですか。", m: "Yes, this is me. Who's this?" },
+{ spk: "A", k: "けんです。今夜暇ですか。", r: "けんです。こんやひまですか。", m: "This is Ken. Are you free tonight?" },
+{ spk: "B", k: "暇です、何かありますか。", r: "ひまです、なにかありますか。", m: "I'm free, what's up?",
+  alt: [["今日はだめです、残業があります。","きょうはだめです、ざんぎょうがあります。","Not today, I have overtime."]] },
+{ spk: "A", k: "一緒に映画を見ましょう。", r: "いっしょにえいがをみましょう。", m: "Let's watch a movie together." },
+{ spk: "B", k: "いいですね！何時に会いますか。", r: "いいですね！なんじにあいますか。", m: "Sounds good! What time shall we meet?" },
+{ spk: "A", k: "夜七時に、いつもの場所で。", r: "よるしちじに、いつものばしょで。", m: "7pm, at the usual place." },
+{ spk: "B", k: "わかりました、後で！", r: "わかりました、あとで！", m: "OK, see you later!" }
+]
+},
+{
+id: "self-intro", ico: "🙋", title: "自己紹介 — Introducing Yourself",
+roles: { A: "David", B: "みさ" },
+lines: [
+{ spk: "A", k: "こんにちは、私はデイビッドです。お名前は？", r: "こんにちは、わたしはでいびっどです。おなまえは？", m: "Hi, I'm David. What's your name?" },
+{ spk: "B", k: "私はみさです。よろしくお願いします。", r: "わたしはみさです。よろしくおねがいします。", m: "I'm Misa. Nice to meet you." },
+{ spk: "A", k: "どちらの国の方ですか。", r: "どちらのくにのかたですか。", m: "Where are you from?" },
+{ spk: "B", k: "日本人です、あなたは？", r: "にほんじんです、あなたは？", m: "I'm Japanese, and you?",
+  alt: [["アメリカ人です、仕事でここに来ました。","あめりかじんです、しごとでここにきました。","I'm American, here for work."]] },
+{ spk: "A", k: "アメリカ人です。お仕事は何ですか。", r: "あめりかじんです。おしごとはなんですか。", m: "I'm American. What do you do for work?" },
+{ spk: "B", k: "先生です、あなたは？", r: "せんせいです、あなたは？", m: "I'm a teacher. And you?",
+  alt: [["学生です、大学で日本語を勉強しています。","がくせいです、だいがくでにほんごをべんきょうしています。","I'm a student, studying Japanese at university."]] },
+{ spk: "A", k: "医者です。", r: "いしゃです。", m: "I'm a doctor." }
+]
+},
+{
+id: "hotel-checkin", ico: "🏨", title: "ホテルのチェックイン — Hotel Check-in",
+roles: { A: "Guest", B: "Staff" },
+lines: [
+{ spk: "A", k: "こんにちは、チェックインをお願いします。", r: "こんにちは、ちぇっくいんをおねがいします。", m: "Hello, I'd like to check in." },
+{ spk: "B", k: "お名前を教えていただけますか。", r: "おなまえをおしえていただけますか。", m: "May I have your name?" },
+{ spk: "A", k: "田中です、田中太郎です。", r: "たなかです、たなかたろうです。", m: "My name is Tanaka, Tanaka Taro." },
+{ spk: "B", k: "パスポートを見せていただけますか。", r: "ぱすぽーとをみせていただけますか。", m: "Please show me your passport." },
+{ spk: "A", k: "どうぞ。", r: "どうぞ。", m: "Here you go." },
+{ spk: "B", k: "ありがとうございます、お部屋は三百五号室です。", r: "ありがとうございます、おへやはさんびゃくごごうしつです。", m: "Thank you, your room is 305." },
+{ spk: "A", k: "無料のインターネットはありますか。", r: "むりょうのいんたーねっとはありますか。", m: "Is there free internet?" },
+{ spk: "B", k: "あります、パスワードはルームカードにあります。", r: "あります、ぱすわーどはるーむかーどにあります。", m: "Yes, the password is on the room card." }
+]
+}
 ],
 
 grammar: [

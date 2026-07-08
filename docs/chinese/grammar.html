@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grammar — Tiếng Việt Quest</title>
+<title>Grammar — Zhōngwén Quest</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="wrap">
   <header>
-    <a class="logo" href="index.html"><span class="lotus">🪷</span>
-      <div>Tiếng Việt Quest<br><small>học tiếng Việt mỗi ngày</small></div>
+    <a class="logo" href="index.html"><span class="dragon">🐉</span>
+      <div>Zhōngwén Quest<br><small>每天学中文 · learn Chinese daily</small></div>
     </a>
     <div class="header-right">
       <span class="chip" id="streakChip" title="Daily streak">🔥 0</span>
@@ -22,7 +22,7 @@
 
   <section class="view active">
     <h2 class="view-title">📐 Grammar</h2>
-    <p class="view-sub">Vietnamese verbs never change shape — small helper words do all the work. Browse with audio, then drill yourself.</p>
+    <p class="view-sub">Chinese verbs never change shape — little particles and helpers do all the work. Browse with audio, then drill yourself.</p>
 
     <div id="gramBrowse">
       <div class="controls-row">
@@ -37,7 +37,7 @@
 </div>
 
 <nav>
-  <a href="index.html#home"><span class="nav-ico">🪷</span>Home</a>
+  <a href="index.html#home"><span class="nav-ico">🐉</span>Home</a>
   <a href="index.html#learn"><span class="nav-ico">🎴</span>Learn</a>
   <a href="index.html#quiz"><span class="nav-ico">🧠</span>Quiz</a>
   <a href="index.html#typing"><span class="nav-ico">⌨️</span>Typing</a>
@@ -63,13 +63,14 @@ const getSec = segControl("secSeg");
 $("#secSeg").addEventListener("click", renderSections);
 
 function exRow(ex) {
-  const [vn, en] = ex;
+  const [zh, py, en] = ex;
   return `<div class="g-ex">
     <div class="e-text">
-      <div class="e-vn">${vn}</div>
+      <div class="e-zh">${zh}</div>
+      <div class="e-py">${py}</div>
       <div class="e-en">${en}</div>
     </div>
-    <button class="p-play" data-vn="${vn}" title="Listen">🔊</button>
+    <button class="p-play" data-zh="${zh}" title="Listen">🔊</button>
   </div>`;
 }
 function renderSections() {
@@ -90,13 +91,13 @@ function renderSections() {
       </div>
     </div>`).join("");
   $$("#gramSections .p-play").forEach(btn => btn.addEventListener("click", () => {
-    speakText(btn.dataset.vn);
+    speakText(btn.dataset.zh);
     saveState();
   }));
 }
 
 /* =====================================================================
-   DRILL — English prompt → recall the Vietnamese pattern
+   DRILL — English prompt → recall the Chinese pattern
    ===================================================================== */
 let dr = null;
 $("#drillBtn").addEventListener("click", () => {
@@ -113,7 +114,7 @@ function renderDrill() {
   const it = dr.queue[dr.i];
   if (!it) return finishDrill();
   dr.revealed = false;
-  const [vn, en] = it.ex[0];
+  const [zh, py, en] = it.ex[0];
   $("#drillStage").innerHTML = `
     <div class="flash-stage">
       <div class="flash-meta"><span>${dr.i + 1} / ${dr.queue.length}</span><span>📐 grammar drill</span></div>
@@ -122,7 +123,7 @@ function renderDrill() {
         <div class="flash-word" style="font-size:1.9rem">“${it.en}”</div>
         <div id="drillBack" style="display:none">
           <div class="flash-reading" style="font-size:1.8rem">${it.p}</div>
-          <div class="flash-meaning" style="margin-top:6px">${vn}<br>${en}</div>
+          <div class="flash-meaning" style="margin-top:6px">${zh}<br><span style="color:var(--accent)">${py}</span><br>${en}</div>
         </div>
         <div class="flash-hint" id="drillHint">tap to reveal</div>
       </div>
@@ -138,9 +139,9 @@ function renderDrill() {
     $("#drillBack").style.display = "";
     $("#drillHint").style.display = "none";
     $("#drillGrades").style.visibility = "visible";
-    speakText(vn);
+    speakText(zh);
   });
-  $("#drillSpeak").addEventListener("click", e => { e.stopPropagation(); speakText(vn); });
+  $("#drillSpeak").addEventListener("click", e => { e.stopPropagation(); speakText(zh); });
   $("#drillGrades .g-again").addEventListener("click", () => {
     dr.queue.push(it);                    // comes back this round
     dr.i++; renderDrill();

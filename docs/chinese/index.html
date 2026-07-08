@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tiếng Việt Quest — Vietnamese Learning</title>
+<title>Zhōngwén Quest — Chinese Learning</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="wrap">
   <header>
-    <a class="logo" href="index.html"><span class="lotus">🪷</span>
-      <div>Tiếng Việt Quest<br><small>học tiếng Việt mỗi ngày</small></div>
+    <a class="logo" href="index.html"><span class="dragon">🐉</span>
+      <div>Zhōngwén Quest<br><small>每天学中文 · learn Chinese daily</small></div>
     </a>
     <div class="header-right">
       <span class="chip" id="streakChip" title="Daily streak">🔥 0</span>
@@ -25,7 +25,7 @@
     <div class="card level-card">
       <div class="level-head">
         <span class="level-num" id="homeLevel">Lv.1</span>
-        <span class="level-title" id="homeTitle">Người mới · Newcomer</span>
+        <span class="level-title" id="homeTitle">新手 · Newcomer</span>
         <span class="level-xp" id="homeXpLabel">0 / 80 XP</span>
       </div>
       <div class="meter"><span id="homeXpMeter" style="width:0%"></span></div>
@@ -40,14 +40,14 @@
 
     <div class="quick-actions">
       <button class="qa-btn" data-goto="learn"><span class="qa-ico">🎴</span><div class="qa-name">Flashcards</div><div class="qa-desc">Learn &amp; review words</div></button>
-      <button class="qa-btn" data-goto="quiz"><span class="qa-ico">🧠</span><div class="qa-name">Vocab Quiz</div><div class="qa-desc">Meaning · recall · listening</div></button>
-      <button class="qa-btn" data-goto="typing"><span class="qa-ico">⌨️</span><div class="qa-name">Typing Lab</div><div class="qa-desc">Telex — tones as you type</div></button>
+      <button class="qa-btn" data-goto="quiz"><span class="qa-ico">🧠</span><div class="qa-name">HSK Quiz</div><div class="qa-desc">Meaning · pinyin · listening</div></button>
+      <button class="qa-btn" data-goto="typing"><span class="qa-ico">⌨️</span><div class="qa-name">Pinyin Lab</div><div class="qa-desc">ni3 hao3 → nǐ hǎo</div></button>
       <a class="qa-btn" href="phrases.html"><span class="qa-ico">🗣️</span><div class="qa-name">Phrases</div><div class="qa-desc">Everyday expressions + practice</div></a>
       <a class="qa-btn" href="dialogue.html"><span class="qa-ico">🎭</span><div class="qa-name">Dialogue</div><div class="qa-desc">Full scenes, roleplay both sides</div></a>
-      <a class="qa-btn" href="grammar.html"><span class="qa-ico">📐</span><div class="qa-name">Grammar</div><div class="qa-desc">đã · đang · sẽ · muốn · phải…</div></a>
+      <a class="qa-btn" href="grammar.html"><span class="qa-ico">📐</span><div class="qa-name">Grammar</div><div class="qa-desc">了 · 过 · 想 · 会 · 比…</div></a>
     </div>
 
-    <div class="section-label">Level progress</div>
+    <div class="section-label">HSK progress</div>
     <div class="card lv-meters" id="lvMeters"></div>
 
     <div class="section-label">Badges</div>
@@ -60,34 +60,34 @@
     <p class="view-sub">Spaced repetition — cards come back right before you forget them.</p>
     <div class="controls-row">
       <div class="seg" id="learnLevelSeg">
-        <button data-lv="A1" class="active">A1</button>
-        <button data-lv="A2">A2</button>
-        <button data-lv="B1">B1</button>
+        <button data-lv="HSK1" class="active">HSK 1</button>
+        <button data-lv="HSK2">HSK 2</button>
+        <button data-lv="HSK3">HSK 3</button>
         <button data-lv="ALL">All</button>
       </div>
       <button class="btn small" id="learnStartBtn">Start session</button>
       <button class="btn small ghost" id="cramToggle" title="Cards keep coming back this session until you grade them Easy">🔁 Until easy: Off</button>
     </div>
     <div class="flash-stage" id="flashStage">
-      <div class="empty-state"><div class="big">🪷</div>Pick a level and start a session.<br>New words and due reviews are queued automatically.</div>
+      <div class="empty-state"><div class="big">🐉</div>Pick a level and start a session.<br>New words and due reviews are queued automatically.</div>
     </div>
   </section>
 
   <!-- ============ QUIZ ============ -->
   <section class="view" id="view-quiz">
-    <h2 class="view-title">🧠 Vocab Quiz</h2>
-    <p class="view-sub">Ten questions. Vietnamese → English, English → Vietnamese, or pure listening.</p>
+    <h2 class="view-title">🧠 HSK Quiz</h2>
+    <p class="view-sub">Ten questions. Meaning, pinyin reading, or pure listening.</p>
     <div id="quizSetup">
       <div class="controls-row">
         <div class="seg" id="quizLevelSeg">
-          <button data-lv="A1" class="active">A1</button>
-          <button data-lv="A2">A2</button>
-          <button data-lv="B1">B1</button>
+          <button data-lv="HSK1" class="active">HSK 1</button>
+          <button data-lv="HSK2">HSK 2</button>
+          <button data-lv="HSK3">HSK 3</button>
           <button data-lv="ALL">All</button>
         </div>
         <div class="seg" id="quizModeSeg">
           <button data-mode="meaning" class="active">💬 Meaning</button>
-          <button data-mode="recall">🔁 EN → VN</button>
+          <button data-mode="reading">🔤 Pinyin</button>
           <button data-mode="listening">👂 Listening</button>
         </div>
       </div>
@@ -98,36 +98,38 @@
 
   <!-- ============ TYPING ============ -->
   <section class="view" id="view-typing">
-    <h2 class="view-title">⌨️ Typing Lab</h2>
-    <p class="view-sub">Type plain letters — Telex turns them into Vietnamese as you type. No Vietnamese keyboard needed.</p>
+    <h2 class="view-title">⌨️ Pinyin Lab</h2>
+    <p class="view-sub">Type pinyin with tone numbers — ni3 hao3 becomes nǐ hǎo as you type. No Chinese keyboard needed.</p>
     <div id="typeSetup">
       <div class="controls-row">
         <div class="seg" id="typeLevelSeg">
-          <button data-lv="A1" class="active">A1</button>
-          <button data-lv="A2">A2</button>
-          <button data-lv="B1">B1</button>
+          <button data-lv="HSK1" class="active">HSK 1</button>
+          <button data-lv="HSK2">HSK 2</button>
+          <button data-lv="HSK3">HSK 3</button>
           <button data-lv="ALL">All</button>
         </div>
         <div class="seg" id="typeModeSeg">
           <button data-mode="listen" class="active">👂 Type what you hear</button>
-          <button data-mode="recall">💬 Type from meaning</button>
+          <button data-mode="read">🀄 Type the pinyin</button>
         </div>
       </div>
-      <button class="btn" id="typeStartBtn">Start typing</button>
+      <button class="btn" id="typeStartBtn">Enter the lab</button>
     </div>
     <div id="typeStage" style="display:none"></div>
     <details class="ime-help" id="imeHelp">
-        <summary>Telex cheat sheet — plain letters → Vietnamese</summary>
+        <summary>Pinyin cheat sheet — tone numbers → tone marks</summary>
         <div class="ime-table">
           <table>
-            <tr><th colspan="2">special letters</th><th colspan="2">tone marks (type after the vowel)</th></tr>
-            <tr><td>aa → â</td><td>aw → ă</td><td><b>s</b> → sắc (á) rising</td><td><b>f</b> → huyền (à) falling</td></tr>
-            <tr><td>ee → ê</td><td>ow → ơ</td><td><b>r</b> → hỏi (ả) asking</td><td><b>x</b> → ngã (ã) broken</td></tr>
-            <tr><td>oo → ô</td><td>uw / w → ư</td><td><b>j</b> → nặng (ạ) heavy</td><td><b>z</b> → remove the tone</td></tr>
-            <tr><td colspan="2">dd → đ</td><td colspan="2">the mark lands on the right vowel automatically</td></tr>
+            <tr><th>tone</th><th>type</th><th>get</th><th>sounds like</th></tr>
+            <tr><td>1st — flat</td><td>ma1</td><td>mā</td><td>high &amp; level</td></tr>
+            <tr><td>2nd — rising</td><td>ma2</td><td>má</td><td>like a question: "huh?"</td></tr>
+            <tr><td>3rd — dipping</td><td>ma3</td><td>mǎ</td><td>falls then rises</td></tr>
+            <tr><td>4th — falling</td><td>ma4</td><td>mà</td><td>sharp, like a command</td></tr>
+            <tr><td>neutral</td><td>ma</td><td>ma</td><td>short &amp; light — no number</td></tr>
+            <tr><th colspan="4">extras</th></tr>
+            <tr><td colspan="2">v → ü (nv3 → nǚ, lv4 → lǜ)</td><td colspan="2">the mark lands on the right vowel automatically</td></tr>
             <tr><th colspan="4">examples</th></tr>
-            <tr><td>chaof → chào</td><td>camr own → cảm ơn</td><td>phowr → phở</td><td>nguowif → người</td></tr>
-            <tr><td>Vieetj → Việt</td><td>ddepj → đẹp</td><td>khoer → khỏe</td><td>hocj → học</td></tr>
+            <tr><td>ni3hao3 → nǐhǎo</td><td>xie4xie → xièxie</td><td>zhong1guo2 → zhōngguó</td><td>dui4buqi3 → duìbuqǐ</td></tr>
           </table>
         </div>
       </details>
@@ -152,7 +154,7 @@
         <button class="btn small ghost" id="soundBtn">🔊 On</button>
       </div>
       <div class="data-row">
-        <div class="d-text"><div class="d-title">Speech speed</div><div class="d-desc">How fast Vietnamese audio is spoken.</div></div>
+        <div class="d-text"><div class="d-title">Speech speed</div><div class="d-desc">How fast Chinese audio is spoken.</div></div>
         <input type="range" id="rateSlider" min="0.5" max="1.2" step="0.05" value="0.9">
         <span id="rateLabel" style="font-weight:700; font-size:0.85rem;">0.9×</span>
       </div>
@@ -166,7 +168,7 @@
 </div>
 
 <nav>
-  <button data-view="home" class="active"><span class="nav-ico">🪷</span>Home</button>
+  <button data-view="home" class="active"><span class="nav-ico">🐉</span>Home</button>
   <button data-view="learn"><span class="nav-ico">🎴</span>Learn</button>
   <button data-view="quiz"><span class="nav-ico">🧠</span>Quiz</button>
   <button data-view="typing"><span class="nav-ico">⌨️</span>Typing</button>
@@ -220,7 +222,7 @@ function renderHome() {
     const total = wordsOf(lv).length, got = learnedCount(lv);
     const pct = total ? Math.round(100 * got / total) : 0;
     return `<div class="lv-row ${lv.toLowerCase()}">
-      <div class="m-head"><span>${lv} — ${LEVEL_NAMES[lv]}</span><span class="m-count">${got} / ${total} words · ${pct}%</span></div>
+      <div class="m-head"><span>HSK ${lv.slice(3)} — ${LEVEL_NAMES[lv]}</span><span class="m-count">${got} / ${total} words · ${pct}%</span></div>
       <div class="meter"><span style="width:${pct}%"></span></div></div>`;
   }).join("");
 
@@ -251,7 +253,7 @@ function startLearn() {
   learnQueue = [...due, ...fresh];
   if (!learnQueue.length) {
     $("#flashStage").innerHTML = `<div class="empty-state"><div class="big">🎉</div>
-      All caught up at this level — nothing due and no new cards.<br>Try another level or the Typing Lab!</div>`;
+      All caught up at this level — nothing due and no new cards.<br>Try another level or the Pinyin Lab!</div>`;
     return;
   }
   learnQueue = shuffled(learnQueue);
@@ -272,10 +274,11 @@ function renderFlash() {
   $("#flashStage").innerHTML = `
     <div class="flash-meta"><span>${learnIdx + 1} / ${learnQueue.length}</span><span>${isNew ? "✨ new word" : "🔁 review"}</span></div>
     <div class="flashcard" id="flashCard">
-      <span class="flash-level-tag">Level ${w.lv}</span>
-      <div class="flash-word">${w.w}</div>
+      <span class="flash-level-tag">HSK ${w.lv.slice(3)}</span>
+      <div class="flash-word">${w.k}</div>
       <div id="flashBack" style="display:none">
-        <div class="flash-meaning" style="font-size:1.3rem">${w.m}</div>
+        <div class="flash-reading">${w.r}</div>
+        <div class="flash-meaning">${w.m}</div>
       </div>
       <div class="flash-hint" id="flashHint">tap to reveal</div>
     </div>
@@ -337,13 +340,11 @@ function renderQuiz() {
   const w = q.w, mode = quiz.mode;
   const bar = quiz.qs.map((qq, idx) =>
     `<span class="${qq.result === true ? "done-ok" : qq.result === false ? "done-bad" : idx === quiz.i ? "current" : ""}"></span>`).join("");
-  const prompt = { meaning: "What does this mean?", recall: "How do you say this in Vietnamese?", listening: "What did you hear?" }[mode];
+  const prompt = { meaning: "What does this mean?", reading: "How is this read?", listening: "What did you hear?" }[mode];
   const wordHtml = mode === "listening"
     ? `<button class="listen-big" id="quizPlay" title="Play again">🔊</button>`
-    : mode === "recall"
-      ? `<div class="quiz-word en">“${w.m}”</div>`
-      : `<div class="quiz-word">${w.w}</div>`;
-  const choiceText = c => mode === "meaning" ? c.m : mode === "recall" ? c.w : `${c.w} — ${c.m}`;
+    : `<div class="quiz-word">${w.k}</div>`;
+  const choiceText = c => mode === "meaning" ? c.m : mode === "reading" ? c.r : `${c.k} — ${c.m}`;
   $("#quizStage").innerHTML = `
     <div class="quiz-progress">${bar}</div>
     <div class="card quiz-q">
@@ -396,7 +397,7 @@ function finishQuiz() {
 }
 
 /* =====================================================================
-   TYPING LAB
+   PINYIN LAB
    ===================================================================== */
 const typeLevel = segControl("typeLevelSeg");
 const typeMode = segControl("typeModeSeg");
@@ -417,7 +418,7 @@ function renderType() {
   ty.solved = false; ty.tries = 0;
   const target = ty.mode === "listen"
     ? `<button class="listen-big" id="tyPlay" title="Play again">🔊</button>`
-    : `<div class="type-target small">“${w.m}”</div>`;
+    : `<div class="type-target">${w.k}<span class="t-meaning">${w.m}</span></div>`;
   $("#typeStage").innerHTML = `
     <div class="type-hud">
       <span>${ty.i + 1} / ${ty.words.length}</span>
@@ -430,16 +431,16 @@ function renderType() {
         ${ty.mode === "listen" ? `<button class="btn small ghost" id="tySlow">🐢 Slow</button>
         <button class="btn small ghost" id="tyHint">💡 Hint</button>` : `<button class="btn small ghost" id="tyListen">🔊 Listen</button>`}
       </div>
-      <input class="viet-input" id="tyInput" autocomplete="off" autocapitalize="off" spellcheck="false"
-        placeholder="${ty.mode === "listen" ? "type what you hear…" : "type it in Vietnamese…"}">
+      <input class="py-input" id="tyInput" autocomplete="off" autocapitalize="off" spellcheck="false"
+        placeholder="${ty.mode === "listen" ? "type the pinyin you hear…" : "type the pinyin…"}">
       <div class="type-feedback" id="tyFeedback"></div>
       <div class="type-tools">
         <button class="btn small ghost" id="tySkip">Skip ➟</button>
-        <button class="btn small ghost" id="tyTelex">⌨️ Telex help</button>
+        <button class="btn small ghost" id="tyPinyin">⌨️ Pinyin help</button>
       </div>
     </div>`;
   const input = $("#tyInput");
-  wireTelexInput(input);
+  wirePinyinInput(input);
   input.focus();
   if (ty.mode === "listen") {
     $("#tyPlay").addEventListener("click", () => { speakWord(w); input.focus(); });
@@ -454,11 +455,11 @@ function renderType() {
   }
   input.addEventListener("keydown", e => {
     if (e.key !== "Enter" || ty.solved) return;
-    const typed = finalizeTelex(input.value);
+    const typed = finalizePinyin(input.value);
     if (!typed) return;
     input.value = typed;
     ty.attempts++; state.stats.typed++;
-    if (vnNorm(typed) === vnNorm(w.w)) {
+    if (pyNorm(typed) === pyNorm(w.r)) {
       ty.solved = true;
       ty.combo++; ty.best = Math.max(ty.best, ty.combo); ty.correct++;
       state.stats.typedCorrect++;
@@ -466,7 +467,7 @@ function renderType() {
       const bonus = Math.min(ty.combo, 10);
       const firstTry = ty.tries === 0 ? 5 : 0;
       input.classList.add("flash-ok"); sfx("ok");
-      $("#tyFeedback").innerHTML = `<span class="fb-ok">⭕ ${w.w} — ${w.m}　+${10 + bonus + firstTry} XP</span>`;
+      $("#tyFeedback").innerHTML = `<span class="fb-ok">⭕ ${w.k}（${w.r}） ${w.m}　+${10 + bonus + firstTry} XP</span>`;
       gainXP(10 + bonus + firstTry);
       // typing success also nudges the SRS schedule forward
       if (state.srs[w.id]) srsGrade(w.id, "good"); else { srsGrade(w.id, "good"); state.stats.cards++; }
@@ -477,17 +478,17 @@ function renderType() {
       ty.combo = 0;
       input.classList.remove("flash-bad"); void input.offsetWidth;
       input.classList.add("flash-bad"); sfx("bad");
-      const toneSlip = vnFlat(typed) === vnFlat(w.w);
+      const toneSlip = pyFlat(typed) === pyFlat(w.r);
       $("#tyFeedback").innerHTML = ty.tries >= 3
-        ? `<span class="fb-bad">✕ answer: ${w.w} — type it once to continue</span>`
+        ? `<span class="fb-bad">✕ answer: ${w.r}（${w.k}） — type it once to continue</span>`
         : toneSlip
-          ? `<span class="fb-bad">✕ letters right — check the tone marks! (${3 - ty.tries} tries left)</span>`
+          ? `<span class="fb-bad">✕ letters right — check the tones! (${3 - ty.tries} tries left)</span>`
           : `<span class="fb-bad">✕ not quite — try again (${3 - ty.tries} tries left)</span>`;
       if (ty.mode === "listen" && ty.tries < 3) speakWord(w, 0.75);
       saveState();
     }
   });
-  $("#tyTelex").addEventListener("click", () => {
+  $("#tyPinyin").addEventListener("click", () => {
     const d = $("#imeHelp");
     d.open = !d.open;
     if (d.open) d.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -496,7 +497,7 @@ function renderType() {
   $("#tySkip").addEventListener("click", () => {
     ty.combo = 0;
     ty.misses.push(w);
-    $("#tyFeedback").innerHTML = `<span class="fb-bad">answer: ${w.w} — ${w.m}</span>`;
+    $("#tyFeedback").innerHTML = `<span class="fb-bad">answer: ${w.r}（${w.k}） ${w.m}</span>`;
     speakWord(w);
     setTimeout(() => { ty.i++; renderType(); }, 1400);
   });
@@ -506,18 +507,18 @@ function finishType() {
   const acc = ty.attempts ? Math.round(100 * ty.correct / ty.attempts) : 0;
   checkBadges(); saveState();
   $("#typeStage").innerHTML = `<div class="card result-hero">
-    <div class="r-emoji">${acc >= 90 ? "🥇" : acc >= 60 ? "🛵" : "🌱"}</div>
+    <div class="r-emoji">${acc >= 90 ? "🐉" : acc >= 60 ? "🐼" : "🌱"}</div>
     <div class="r-big">${ty.correct}/${ty.words.length}</div>
-    <div class="r-line">${acc >= 90 ? "Telex master — giỏi quá!" : acc >= 60 ? "Solid — keep practicing those tones." : "Tones take time — cố lên!"}</div>
+    <div class="r-line">${acc >= 90 ? "Pinyin master — 太棒了!" : acc >= 60 ? "Solid — keep drilling those tones." : "Tones take time — 加油!"}</div>
     <div class="result-stats">
       <div><div class="rs-v">${acc}%</div><div class="rs-l">accuracy</div></div>
       <div><div class="rs-v">${ty.best}🔥</div><div class="rs-l">best combo</div></div>
       <div><div class="rs-v">${secs}s</div><div class="rs-l">time</div></div>
     </div>
     ${ty.misses.length ? `<ul class="miss-list"><li style="font-weight:800;color:var(--ink-1)">Words to revisit:</li>
-      ${ty.misses.map(w => `<li>・ ${w.w} — ${w.m}</li>`).join("")}</ul>` : ""}
+      ${ty.misses.map(w => `<li>・ ${w.k}（${w.r}）${w.m}</li>`).join("")}</ul>` : ""}
     <div style="margin-top:20px; display:flex; gap:10px; justify-content:center">
-      <button class="btn" id="tyAgain">Type again</button>
+      <button class="btn" id="tyAgain">Train again</button>
       <button class="btn ghost" id="tyBack">Change settings</button>
     </div></div>`;
   $("#tyAgain").addEventListener("click", () => $("#typeStartBtn").click());
@@ -528,9 +529,9 @@ function finishType() {
    DATA — export / import / settings
    ===================================================================== */
 $("#exportBtn").addEventListener("click", async () => {
-  const data = { ...state, savedAt: new Date().toISOString(), app: "tieng-viet-quest" };
+  const data = { ...state, savedAt: new Date().toISOString(), app: "zhongwen-quest" };
   const json = JSON.stringify(data, null, 2);
-  const suggested = `tieng-viet-quest-progress-${todayStr()}.json`;
+  const suggested = `zhongwen-quest-progress-${todayStr()}.json`;
   // File System Access API: real "save as" dialog — user picks folder & name
   if (window.showSaveFilePicker) {
     try {
@@ -589,7 +590,7 @@ $("#rateSlider").addEventListener("input", e => {
   $("#rateLabel").textContent = state.settings.rate.toFixed(2).replace(/0$/, "") + "×";
   saveState();
 });
-$("#rateSlider").addEventListener("change", () => speakText("Xin chào"));
+$("#rateSlider").addEventListener("change", () => speakText("你好"));
 function syncSettingsUI() {
   $("#cramToggle").textContent = "🔁 Until easy: " + (state.settings.cram ? "On" : "Off");
   $("#cramToggle").classList.toggle("ghost", !state.settings.cram);

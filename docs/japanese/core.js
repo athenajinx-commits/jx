@@ -10,6 +10,10 @@ const LEVELS = ["N5", "N4", "N3"];
 const WORDS = [];
 for (const lv of LEVELS) for (const [k, r, m] of VOCAB_RAW[lv]) WORDS.push({ id: k, k, r, m, lv });
 const WORD_BY_ID = Object.fromEntries(WORDS.map(w => [w.id, w]));
+const DIALOGUES = window.NQ_DATA.dialogues.map(d => ({
+  ...d,
+  lines: d.lines.map(l => ({ ...l, alt: (l.alt || []).map(([k, r, m]) => ({ k, r, m })) }))
+}));
 const isKanaOnly = s => /^[぀-ヿー、。！？\s]+$/.test(s);
 
 /* =====================================================================
@@ -89,17 +93,20 @@ function romajiToKana(src, final = false) {
 }
 /*IME-END*/
 
-/** Live-convert the trailing romaji of an input's value. */
+/** Live-convert the trailing romaji of an input's value. Spaces are included
+ *  in the trailing run (not just letters) so a word-final "n" commits to ん
+ *  as soon as the following space is typed, instead of staying stranded as
+ *  a bare "n" — matters once sentences (not just single words) are typed. */
 function wireKanaInput(input) {
   input.addEventListener("input", () => {
-    const m = input.value.match(/^([\s\S]*?)([a-zA-Z'\-,.?!]*)$/);
+    const m = input.value.match(/^([\s\S]*?)([a-zA-Z'\-,.?!\s]*)$/);
     const { kana, pending } = romajiToKana(m[2]);
     const v = m[1] + kana + pending;
     if (v !== input.value) input.value = v;
   });
 }
 function finalizeKana(value) {
-  const m = value.match(/^([\s\S]*?)([a-zA-Z'\-,.?!]*)$/);
+  const m = value.match(/^([\s\S]*?)([a-zA-Z'\-,.?!\s]*)$/);
   const { kana, pending } = romajiToKana(m[2], true);
   return (m[1] + kana + pending).trim();
 }
@@ -165,7 +172,7 @@ const SAVE_KEY = "nihongoQuestV1";
 const defaultState = () => ({
   version: 1, xp: 0, streak: 0, lastActive: null, bestCombo: 0,
   stats: { cards: 0, quizzes: 0, perfect: 0, quizQ: 0, quizCorrect: 0,
-           typed: 0, typedCorrect: 0, listens: 0, phrases: 0, drills: 0 },
+           typed: 0, typedCorrect: 0, listens: 0, phrases: 0, drills: 0, dialogues: 0 },
   srs: {},                      // id → {b: box 0-6, d: due epoch-ms, s: seen, c: correct}
   badges: [],
   settings: { sound: true, rate: 0.9, cram: false }
@@ -263,6 +270,7 @@ const BADGES = [
   { id: "type100", ico: "⌨️", name: "Keyboard Ninja", desc: "Type 100 words right", test: s => s.stats.typedCorrect >= 100 },
   { id: "phrase30", ico: "🗣️", name: "Smooth Talker", desc: "Type 30 phrases right", test: s => s.stats.phrases >= 30 },
   { id: "drill50", ico: "📐", name: "Grammar Geek", desc: "Clear 50 grammar drills", test: s => s.stats.drills >= 50 },
+  { id: "dialogue5", ico: "🎭", name: "Storyteller", desc: "Complete 5 dialogues", test: s => s.stats.dialogues >= 5 },
   { id: "s3", ico: "📅", name: "Habit Forming", desc: "3-day streak", test: s => s.streak >= 3 },
   { id: "s7", ico: "🗓️", name: "One Week Strong", desc: "7-day streak", test: s => s.streak >= 7 },
   { id: "s30", ico: "🌸", name: "Hanami", desc: "30-day streak", test: s => s.streak >= 30 },

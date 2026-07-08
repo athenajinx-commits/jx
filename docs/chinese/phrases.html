@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Phrases — Nihongo Quest</title>
+<title>Phrases — Zhōngwén Quest</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="wrap">
   <header>
-    <a class="logo" href="index.html"><span class="torii">⛩️</span>
-      <div>Nihongo Quest<br><small>にほんごクエスト</small></div>
+    <a class="logo" href="index.html"><span class="dragon">🐉</span>
+      <div>Zhōngwén Quest<br><small>每天学中文 · learn Chinese daily</small></div>
     </a>
     <div class="header-right">
       <span class="chip" id="streakChip" title="Daily streak">🔥 0</span>
@@ -42,7 +42,7 @@
 </div>
 
 <nav>
-  <a href="index.html#home"><span class="nav-ico">⛩️</span>Home</a>
+  <a href="index.html#home"><span class="nav-ico">🐉</span>Home</a>
   <a href="index.html#learn"><span class="nav-ico">🎴</span>Learn</a>
   <a href="index.html#quiz"><span class="nav-ico">🧠</span>Quiz</a>
   <a href="index.html#typing"><span class="nav-ico">⌨️</span>Typing</a>
@@ -71,8 +71,8 @@ function renderList() {
   $("#phraseList").innerHTML = list.map((p, i) => `
     <div class="phrase-row">
       <div class="p-text">
-        <div class="p-jp">${p.k}</div>
-        <div class="p-read">${p.r}</div>
+        <div class="p-zh">${p.k}</div>
+        <div class="p-py">${p.r}</div>
         <div class="p-en">${p.m}</div>
       </div>
       <button class="p-play" data-i="${i}" title="Listen">🔊</button>
@@ -84,7 +84,7 @@ function renderList() {
 }
 
 /* =====================================================================
-   PRACTICE — listen & type the phrase
+   PRACTICE — listen & type the pinyin
    ===================================================================== */
 let pr = null;
 $("#practiceBtn").addEventListener("click", () => {
@@ -110,33 +110,32 @@ function renderPractice() {
       <div class="type-audio-row">
         <button class="btn small ghost" id="prPlay">🔊 Listen</button>
         <button class="btn small ghost" id="prSlow">🐢 Slow</button>
-        <button class="btn small ghost" id="prShow">👀 Show Japanese</button>
+        <button class="btn small ghost" id="prShow">👀 Show Chinese</button>
       </div>
-      <input class="kana-input long" id="prInput" autocomplete="off" autocapitalize="off" spellcheck="false"
-        placeholder="type the phrase in romaji…">
+      <input class="py-input long" id="prInput" autocomplete="off" autocapitalize="off" spellcheck="false"
+        placeholder="type the pinyin — tone numbers become marks…">
       <div class="type-feedback" id="prFeedback"></div>
       <div class="type-tools">
         <button class="btn small ghost" id="prSkip">Skip ➟</button>
       </div>
     </div>`;
   const input = $("#prInput");
-  wireKanaInput(input);
+  wirePinyinInput(input);
   input.focus();
   speakWord(p);
   $("#prPlay").addEventListener("click", () => { speakWord(p); input.focus(); });
   $("#prSlow").addEventListener("click", () => { speakWord(p, 0.6); input.focus(); });
   $("#prShow").addEventListener("click", () => {
-    $("#prFeedback").innerHTML = `<span class="fb-info">${p.k}</span>`;
+    $("#prFeedback").innerHTML = `<span class="fb-info">${p.k}（${p.r}）</span>`;
     input.focus();
   });
   input.addEventListener("keydown", e => {
     if (e.key !== "Enter" || pr.solved) return;
-    const typed = finalizeKana(input.value).replace(/[、。！？\s]/g, "");
+    const typed = finalizePinyin(input.value);
     if (!typed) return;
     input.value = typed;
-    const target = p.r.replace(/[、。！？\s]/g, "");
     pr.attempts++;
-    if (typed === target) {
+    if (pyNorm(typed) === pyNorm(p.r)) {
       pr.solved = true; pr.correct++;
       state.stats.phrases++;
       input.classList.add("flash-ok"); sfx("ok");
@@ -148,9 +147,12 @@ function renderPractice() {
       pr.tries++;
       input.classList.remove("flash-bad"); void input.offsetWidth;
       input.classList.add("flash-bad"); sfx("bad");
+      const toneSlip = pyFlat(typed) === pyFlat(p.r);
       $("#prFeedback").innerHTML = pr.tries >= 3
         ? `<span class="fb-bad">✕ answer: ${p.r}（${p.k}） — type it once to continue</span>`
-        : `<span class="fb-bad">✕ not quite — listen again (${3 - pr.tries} tries left)</span>`;
+        : toneSlip
+          ? `<span class="fb-bad">✕ letters right — check the tones! (${3 - pr.tries} tries left)</span>`
+          : `<span class="fb-bad">✕ not quite — listen again (${3 - pr.tries} tries left)</span>`;
       if (pr.tries < 3) speakWord(p, 0.75);
       saveState();
     }

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dialogue — Zhōngwén Quest</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <a class="logo" href="index.html"><span class="dragon">🐉</span>
+      <div>Zhōngwén Quest<br><small>每天学中文 · learn Chinese daily</small></div>
+    </a>
+    <div class="header-right">
+      <span class="chip" id="streakChip" title="Daily streak">🔥 0</span>
+      <span class="chip" id="xpChip" title="Total XP">✨ 0 XP</span>
+      <button class="icon-btn" id="themeBtn" title="Toggle light/dark">◐</button>
+    </div>
+  </header>
+
+  <section class="view active">
+    <h2 class="view-title">🎭 Dialogue</h2>
+    <p class="view-sub">Real exchanges, not isolated lines — sentences here stay grouped in the scene they belong to, and questions often accept more than one honest answer.</p>
+
+    <div id="dlgBrowse">
+      <div class="dlg-list-select" id="dlgList"></div>
+    </div>
+
+    <div id="dlgPractice" style="display:none"></div>
+  </section>
+</div>
+
+<nav>
+  <a href="index.html#home"><span class="nav-ico">🐉</span>Home</a>
+  <a href="index.html#learn"><span class="nav-ico">🎴</span>Learn</a>
+  <a href="index.html#quiz"><span class="nav-ico">🧠</span>Quiz</a>
+  <a href="index.html#typing"><span class="nav-ico">⌨️</span>Typing</a>
+  <a href="phrases.html"><span class="nav-ico">🗣️</span>Phrases</a>
+  <a href="dialogue.html" class="active"><span class="nav-ico">🎭</span>Dialogue</a>
+  <a href="grammar.html"><span class="nav-ico">📐</span>Grammar</a>
+  <a href="index.html#data"><span class="nav-ico">💾</span>Data</a>
+</nav>
+
+<div id="toasts"></div>
+
+<script src="data.js"></script>
+<script src="core.js"></script>
+<script>
+"use strict";
+
+/* =====================================================================
+   BROWSE — expandable scene cards, chat-bubble transcript, alt answers
+   ===================================================================== */
+function lineBubble(l, spk) {
+  const altHtml = (l.alt && l.alt.length) ? `
+    <div class="dlg-alt">
+      <div class="dlg-alt-label">Other ways to answer</div>
+      ${l.alt.map(a => `
+        <div class="dlg-alt-item">
+          <div class="dlg-bubble-col" style="max-width:none">
+            <div class="dlg-zh">${a.zh}</div>
+            <div class="dlg-py">${a.py}</div>
+            <div class="dlg-en">${a.en}</div>
+          </div>
+          <button class="p-play" data-zh="${a.zh}" title="Listen">🔊</button>
+        </div>`).join("")}
+    </div>` : "";
+  return `
+    <div class="dlg-line spk-${spk.toLowerCase()}">
+      <div class="dlg-avatar">${spk}</div>
+      <div class="dlg-bubble-col">
+        <div class="dlg-row">
+          <div class="dlg-bubble">
+            <div class="dlg-zh">${l.zh}</div>
+            <div class="dlg-py">${l.py}</div>
+            <div class="dlg-en">${l.en}</div>
+          </div>
+          <button class="p-play" data-zh="${l.zh}" title="Listen">🔊</button>
+        </div>
+        ${altHtml}
+      </div>
+    </div>`;
+}
+
+function renderDialogueList() {
+  $("#dlgList").innerHTML = DIALOGUES.map(d => `
+    <div class="card dialogue-card" id="card-${d.id}">
+      <div class="dlg-head" data-toggle="${d.id}">
+        <span class="dlg-ico">${d.ico}</span>
+        <span class="dlg-title-text">${d.title}<small>${d.lines.length} lines · ${d.lines.filter(l => l.alt.length).length} with alternate answers</small></span>
+        <span class="dlg-caret">▶</span>
+      </div>
+      <div class="dlg-body">
+        <div class="dlg-lines">${d.lines.map(l => lineBubble(l, l.spk)).join("")}</div>
+        <div class="dlg-practice-row">
+          <button class="btn small" data-practice="${d.id}" data-role="A">🎭 Practice as ${d.roles.A}</button>
+          <button class="btn small ghost" data-practice="${d.id}" data-role="B">🎭 Practice as ${d.roles.B}</button>
+        </div>
+      </div>
+    </div>`).join("");
+
+  $$("#dlgList .dlg-head").forEach(h => h.addEventListener("click", () => {
+    $("#card-" + h.dataset.toggle).classList.toggle("open");
+  }));
+  $$("#dlgList .p-play").forEach(btn => btn.addEventListener("click", e => {
+    e.stopPropagation();
+    speakText(btn.dataset.zh);
+    saveState();
+  }));
+  $$("#dlgList [data-practice]").forEach(btn => btn.addEventListener("click", e => {
+    e.stopPropagation();
+    startDialoguePractice(btn.dataset.practice, btn.dataset.role);
+  }));
+}
+
+/* =====================================================================
+   PRACTICE — roleplay one side of the exchange; any listed alt answer
+   (or the main line) counts as correct, since real answers vary.
+   ===================================================================== */
+let dlg = null;
+
+function startDialoguePractice(id, role) {
+  const d = DIALOGUES.find(x => x.id === id);
+  dlg = { d, role, i: 0, transcript: [], correct: 0, attempts: 0, tries: 0, solved: false };
+  $("#dlgBrowse").style.display = "none";
+  $("#dlgPractice").style.display = "";
+  renderDialoguePractice();
+}
+
+function candidatesFor(line) {
+  return [{ zh: line.zh, py: line.py, en: line.en }, ...(line.alt || [])];
+}
+
+function transcriptHtml() {
+  return `<div class="dlg-transcript">${dlg.transcript.map(t => lineBubble(t, t.spk)).join("")}</div>`;
+}
+
+function renderDialoguePractice() {
+  const d = dlg.d;
+  const line = d.lines[dlg.i];
+  if (!line) return finishDialoguePractice();
+  const isYou = line.spk === dlg.role;
+  dlg.solved = false; dlg.tries = 0;
+
+  if (!isYou) {
+    // the other party's line: reveal + speak immediately, one click to continue
+    $("#dlgPractice").innerHTML = `
+      <div class="dlg-current-prompt">${d.ico} ${d.title} — ${dlg.i + 1} / ${d.lines.length}</div>
+      ${transcriptHtml()}
+      <div class="dlg-lines">${lineBubble(line, line.spk)}</div>
+      <div style="text-align:center; margin-top:14px">
+        <button class="btn" id="dlgContinue">Continue ▶</button>
+      </div>`;
+    speakText(line.zh);
+    $("#dlgPractice .p-play").addEventListener("click", () => speakText(line.zh));
+    $("#dlgContinue").addEventListener("click", () => {
+      dlg.transcript.push(line);
+      dlg.i++;
+      renderDialoguePractice();
+    });
+    return;
+  }
+
+  // your line: hide the hanzi, show only the English prompt + role, type pinyin
+  const other = dlg.d.roles[line.spk === "A" ? "B" : "A"];
+  $("#dlgPractice").innerHTML = `
+    <div class="dlg-current-prompt">${d.ico} ${d.title} — ${dlg.i + 1} / ${d.lines.length}</div>
+    ${transcriptHtml()}
+    <div class="card type-stage">
+      <div class="type-target small">“${line.en}”</div>
+      <div class="type-audio-row">
+        <button class="btn small ghost" id="dlgHint">💡 Hint (show hanzi)</button>
+      </div>
+      <input class="py-input" id="dlgInput" autocomplete="off" autocapitalize="off" spellcheck="false"
+        placeholder="type your reply in pinyin…">
+      <div class="type-feedback" id="dlgFeedback"></div>
+      <div class="type-tools">
+        <button class="btn small ghost" id="dlgSkip">Skip ➟</button>
+      </div>
+    </div>`;
+  const input = $("#dlgInput");
+  wirePinyinInput(input);
+  input.focus();
+  $("#dlgHint").addEventListener("click", () => {
+    $("#dlgFeedback").innerHTML = `<span class="fb-info">💡 ${line.zh}</span>`;
+    input.focus();
+  });
+  input.addEventListener("keydown", e => {
+    if (e.key !== "Enter" || dlg.solved) return;
+    const typed = finalizePinyin(input.value);
+    if (!typed) return;
+    input.value = typed;
+    dlg.attempts++;
+    const candidates = candidatesFor(line);
+    const match = candidates.find(c => pyNorm(typed) === pyNorm(c.py));
+    if (match) {
+      dlg.solved = true; dlg.correct++;
+      state.stats.typed++; state.stats.typedCorrect++;
+      input.classList.add("flash-ok"); sfx("ok");
+      const note = match !== candidates[0] ? " (a valid alternate reply!)" : "";
+      $("#dlgFeedback").innerHTML = `<span class="fb-ok">⭕ ${match.zh} — ${match.en}${note}　+12 XP</span>`;
+      gainXP(12);
+      saveState();
+      setTimeout(() => {
+        dlg.transcript.push({ spk: line.spk, zh: match.zh, py: match.py, en: match.en });
+        dlg.i++;
+        renderDialoguePractice();
+      }, 1300);
+    } else {
+      dlg.tries++;
+      state.stats.typed++;
+      input.classList.remove("flash-bad"); void input.offsetWidth;
+      input.classList.add("flash-bad"); sfx("bad");
+      if (dlg.tries >= 3) {
+        const altCount = candidates.length - 1;
+        $("#dlgFeedback").innerHTML = `<span class="fb-bad">✕ ${line.zh}（${line.py}）${altCount ? ` — or ${altCount} other valid ${altCount === 1 ? "reply" : "replies"}` : ""} — type it once to continue</span>`;
+      } else {
+        const toneSlip = candidates.some(c => pyFlat(typed) === pyFlat(c.py));
+        $("#dlgFeedback").innerHTML = toneSlip
+          ? `<span class="fb-bad">✕ letters right — check the tones! (${3 - dlg.tries} tries left)</span>`
+          : `<span class="fb-bad">✕ not quite — any natural reply works here (${3 - dlg.tries} tries left)</span>`;
+      }
+      saveState();
+    }
+  });
+  $("#dlgSkip").addEventListener("click", () => {
+    $("#dlgFeedback").innerHTML = `<span class="fb-bad">${line.zh}（${line.py}）— ${line.en}</span>`;
+    speakText(line.zh);
+    setTimeout(() => {
+      dlg.transcript.push(line);
+      dlg.i++;
+      renderDialoguePractice();
+    }, 1400);
+  });
+}
+
+function finishDialoguePractice() {
+  state.stats.dialogues++;
+  const acc = dlg.attempts ? Math.round(100 * dlg.correct / dlg.attempts) : 100;
+  checkBadges(); saveState();
+  const yourLines = dlg.d.lines.filter(l => l.spk === dlg.role).length;
+  $("#dlgPractice").innerHTML = `<div class="card result-hero">
+    <div class="r-emoji">${acc >= 90 ? "🎭" : acc >= 60 ? "🗨️" : "🌱"}</div>
+    <div class="r-big">${dlg.correct}/${yourLines}</div>
+    <div class="r-line">${acc >= 90 ? "You carried that whole scene — 太棒了!" : "Good run — the more you replay a scene, the more it sticks."}</div>
+    ${transcriptHtml()}
+    <div style="margin-top:10px; display:flex; gap:10px; justify-content:center">
+      <button class="btn" id="dlgAgain">Replay this scene</button>
+      <button class="btn ghost" id="dlgBack">Back to all dialogues</button>
+    </div></div>`;
+  $("#dlgAgain").addEventListener("click", () => startDialoguePractice(dlg.d.id, dlg.role));
+  $("#dlgBack").addEventListener("click", () => {
+    $("#dlgPractice").style.display = "none";
+    $("#dlgBrowse").style.display = "";
+  });
+}
+
+renderDialogueList();
+</script>
+</body>
+</html>

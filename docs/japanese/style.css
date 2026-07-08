@@ -329,6 +329,59 @@ input[type="range"] { accent-color: var(--accent); }
 .gram-card .g-ex .e-en { font-size: 0.78rem; color: var(--ink-2); }
 .gram-card .g-ex .p-play { width: 32px; height: 32px; font-size: 0.85rem; background: var(--accent-soft); color: var(--accent); border: none; border-radius: 50%; flex-shrink: 0; }
 
+/* ---------- dialogues ---------- */
+.dialogue-card { margin-bottom: 16px; }
+.dlg-head { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 16px 18px; }
+.dlg-head .dlg-ico { font-size: 1.5rem; }
+.dlg-head .dlg-title-text { flex: 1; font-weight: 800; }
+.dlg-head .dlg-title-text small { display: block; font-weight: 600; color: var(--ink-muted); font-size: 0.78rem; margin-top: 2px; }
+.dlg-head .dlg-caret { color: var(--ink-muted); transition: transform 0.2s ease; }
+.dialogue-card.open .dlg-head .dlg-caret { transform: rotate(90deg); }
+.dlg-body { display: none; padding: 0 18px 18px; }
+.dialogue-card.open .dlg-body { display: block; }
+.dlg-lines { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+.dlg-line { display: flex; gap: 8px; align-items: flex-end; }
+.dlg-line.spk-b { flex-direction: row-reverse; }
+.dlg-avatar {
+  width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.72rem; font-weight: 800; color: #fff;
+  background: var(--accent);
+}
+.dlg-line.spk-b .dlg-avatar { background: var(--aqua); }
+.dlg-bubble-col { max-width: 78%; }
+.dlg-line.spk-b .dlg-bubble-col { align-items: flex-end; display: flex; flex-direction: column; }
+.dlg-bubble {
+  background: var(--page); border: 1px solid var(--border); border-radius: 16px;
+  padding: 10px 14px; position: relative;
+}
+.dlg-line.spk-a .dlg-bubble { border-bottom-left-radius: 4px; }
+.dlg-line.spk-b .dlg-bubble { border-bottom-right-radius: 4px; background: var(--accent-soft); }
+.dlg-jp { font-size: 1.05rem; font-weight: 700; }
+.dlg-read { font-size: 0.8rem; color: var(--accent); font-weight: 700; margin-top: 2px; }
+.dlg-en { font-size: 0.78rem; color: var(--ink-2); margin-top: 2px; }
+.dlg-row { display: flex; gap: 8px; align-items: center; }
+.dlg-row .p-play { width: 30px; height: 30px; font-size: 0.85rem; background: var(--accent-soft); color: var(--accent); border: none; border-radius: 50%; flex-shrink: 0; }
+.dlg-alt { margin-top: 6px; padding-left: 10px; border-left: 2px dashed var(--baseline); }
+.dlg-alt-label { font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--ink-muted); margin-bottom: 4px; }
+.dlg-alt-item { display: flex; gap: 8px; align-items: center; padding: 3px 0; }
+.dlg-alt-item .dlg-jp { font-size: 0.92rem; }
+.dlg-alt-item .dlg-read { font-size: 0.74rem; }
+.dlg-alt-item .dlg-en { font-size: 0.74rem; }
+.dlg-alt-item .p-play { width: 26px; height: 26px; font-size: 0.75rem; }
+.dlg-practice-row { display: flex; gap: 8px; flex-wrap: wrap; padding-top: 4px; border-top: 1px solid var(--grid); }
+
+.dlg-transcript { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; max-width: 640px; margin-left: auto; margin-right: auto; }
+.dlg-current-prompt { text-align: center; font-size: 0.85rem; color: var(--ink-muted); font-weight: 700; margin-bottom: 8px; }
+.dlg-role-pick { display: flex; gap: 10px; justify-content: center; margin: 14px 0; }
+.dlg-role-btn {
+  border: 1px solid var(--border); background: var(--surface-1); border-radius: 14px;
+  padding: 14px 18px; text-align: center; box-shadow: var(--shadow); flex: 1; max-width: 220px;
+}
+.dlg-role-btn .r-name { font-weight: 800; }
+.dlg-role-btn .r-sub { font-size: 0.76rem; color: var(--ink-muted); margin-top: 2px; }
+.dlg-list-select { display: flex; flex-direction: column; gap: 10px; }
+
 /* ---------- toast & confetti ---------- */
 #toasts { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; flex-direction: column; gap: 8px; align-items: center; pointer-events: none; }
 .toast {
