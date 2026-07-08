@@ -76,12 +76,47 @@
 
   .mode-group .btn { border-radius: 0; }
   .mode-group .btn:first-child { border-radius: 8px 0 0 8px; }
-  .mode-group .btn:last-child { border-radius: 0 8px 8px 0; border-left: none; }
+  .mode-group .btn:last-child { border-radius: 0 8px 8px 0; }
+  .mode-group .btn:not(:first-child) { border-left: none; }
 
   .mode-group .btn.active {
     background: var(--ink);
     border-color: var(--ink);
     color: #fff;
+  }
+
+  /* ---- Text block panel ---- */
+  .text-panel {
+    max-width: 900px;
+    margin: 0 auto 1.25rem;
+    background: var(--card);
+    border: 1px solid #d8d4c8;
+    border-radius: 10px;
+    padding: 1rem 1.2rem;
+    font-family: system-ui, sans-serif;
+    display: none;
+  }
+
+  .text-panel.open { display: block; }
+
+  .text-panel textarea {
+    width: 100%;
+    min-height: 140px;
+    resize: vertical;
+    border: 1px solid #d8d4c8;
+    border-radius: 8px;
+    padding: 0.6rem 0.75rem;
+    font-family: "DM Mono", Consolas, monospace;
+    font-size: 0.85rem;
+    color: var(--ink);
+    background: var(--bg);
+  }
+
+  .text-panel .actions {
+    display: flex;
+    gap: 0.6rem;
+    justify-content: flex-end;
+    margin-top: 0.7rem;
   }
 
   .hint {
@@ -149,6 +184,59 @@
   }
 
   .stage.define { cursor: crosshair; }
+  .stage.magnify { cursor: zoom-in; touch-action: none; }
+  .stage.magnify .area { display: none; }
+
+  /* ---- Rendered markdown blocks (unscoped so cloning into the lens keeps styling) ---- */
+  .md-block {
+    background: var(--card);
+    border-radius: 10px;
+    padding: 1.5rem 1.75rem;
+    font-family: Georgia, "Times New Roman", serif;
+    color: var(--ink);
+    max-width: 640px;
+    box-sizing: border-box;
+  }
+
+  .md-block h1, .md-block h2, .md-block h3,
+  .md-block h4, .md-block h5, .md-block h6 {
+    font-family: inherit;
+    line-height: 1.25;
+    margin: 0.9em 0 0.4em;
+  }
+
+  .md-block h1:first-child, .md-block h2:first-child, .md-block h3:first-child { margin-top: 0; }
+
+  .md-block p { margin: 0.6em 0; }
+  .md-block ul, .md-block ol { margin: 0.6em 0; padding-left: 1.4em; }
+  .md-block li { margin: 0.2em 0; }
+
+  .md-block blockquote {
+    margin: 0.8em 0;
+    padding: 0.2em 1em;
+    border-left: 3px solid var(--accent);
+    color: var(--muted);
+  }
+
+  .md-block code {
+    font-family: "DM Mono", "SFMono-Regular", Consolas, monospace;
+    background: #f1efe6;
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+
+  .md-block pre {
+    background: #2b2b28;
+    color: #f6f4ef;
+    padding: 0.9em 1em;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 0.8em 0;
+  }
+
+  .md-block pre code { background: none; padding: 0; color: inherit; }
+  .md-block a { color: var(--accent); }
 
   /* ---- Dropzone ---- */
   #dropzone {
@@ -184,18 +272,15 @@
 
   .view .area {
     cursor: zoom-in;
+    border-color: transparent;
     transition: box-shadow 0.2s ease, border-color 0.2s ease;
-  }
-
-  .view .area:hover:not(.enlarged) {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 4px rgba(185, 138, 47, 0.25);
   }
 
   .area.enlarged {
     cursor: zoom-out;
     z-index: 100;
     border-style: solid;
+    border-color: rgba(185, 138, 47, 0.9);
     box-shadow: var(--shadow-lift);
   }
 
@@ -244,7 +329,7 @@
     pointer-events: none;
   }
 
-  .enlarged .tag { display: none; }
+  .view .tag { display: none; }
 
   /* ---- Backdrop ---- */
   #backdrop {
@@ -259,28 +344,61 @@
   }
 
   #backdrop.visible { opacity: 1; pointer-events: auto; cursor: zoom-out; }
+
+  /* ---- Magnifier lens ---- */
+  #lens {
+    position: fixed;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    border: 3px solid var(--accent);
+    box-shadow: var(--shadow-lift);
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 200;
+    display: none;
+    background: var(--card);
+  }
+
+  .lens-inner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
+  }
 </style>
 </head>
 <body>
 
 <header>
   <h1>Page Highlighter</h1>
-  <p>Upload images, define areas on them, then click an area to enlarge it — click again to put it back.</p>
+  <p>Upload images or add text, define areas to click-to-enlarge, or hold anywhere to magnify.</p>
 </header>
 
 <div class="toolbar">
   <button class="btn primary" id="uploadBtn">Add images</button>
   <input type="file" id="fileInput" accept="image/*" multiple hidden>
+  <button class="btn" id="textBtn">📝 Add text</button>
   <span class="mode-group">
     <button class="btn active" id="defineBtn">✏️ Define areas</button>
     <button class="btn" id="viewBtn">🔍 View</button>
+    <button class="btn" id="magnifyBtn">🔎 Magnify</button>
   </span>
   <button class="btn" id="clearBtn">Clear areas</button>
 </div>
 
-<p class="hint" id="hint">Upload, drop, or paste images to begin.</p>
+<div class="text-panel" id="textPanel">
+  <textarea id="textInput" placeholder="Write or paste Markdown here…"></textarea>
+  <div class="actions">
+    <button class="btn" id="cancelTextBtn">Cancel</button>
+    <button class="btn primary" id="insertTextBtn">Add block</button>
+  </div>
+</div>
+
+<p class="hint" id="hint">Upload images or add a text block to begin.</p>
 
 <div id="backdrop"></div>
+<div id="lens"><div class="lens-inner" id="lensInner"></div></div>
 
 <div id="stages"></div>
 
@@ -298,14 +416,30 @@
   const fileInput = document.getElementById('fileInput');
   const defineBtn = document.getElementById('defineBtn');
   const viewBtn = document.getElementById('viewBtn');
+  const magnifyBtn = document.getElementById('magnifyBtn');
+  const textBtn = document.getElementById('textBtn');
+  const textPanel = document.getElementById('textPanel');
+  const textInput = document.getElementById('textInput');
+  const lens = document.getElementById('lens');
+  const lensInner = document.getElementById('lensInner');
 
   const MAX_SCALE = 4;
   const VIEWPORT_FILL = 0.9;
   const MIN_DRAW_PX = 14;
+  const LENS_SIZE = 200;
+  const ZOOM_MIN = 1.5;
+  const ZOOM_MAX = 5;
 
-  const images = [];   // {url, name, areas: [{x,y,w,h} fractions], stage, img}
+  // {kind: 'image'|'text', name, areas: [{x,y,w,h} fractions] (image only),
+  //  stage, content (element measured/cloned for magnify), img (image only), url (image only)}
+  const items = [];
   let mode = 'define';
   let active = null;   // currently enlarged element
+
+  let magZoom = 2.4;
+  let lensActive = false;
+  let activeMagRec = null;
+  let lastPX = 0, lastPY = 0;
 
   /* ---------- Image loading ---------- */
 
@@ -317,14 +451,123 @@
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => {
-      const rec = { url, name: file.name || 'pasted image', areas: [], img };
+      const rec = { kind: 'image', url, name: file.name || 'pasted image', areas: [], img, content: img };
       buildStage(rec);
-      images.push(rec);
+      items.push(rec);
       dropzone.classList.add('compact');
       setMode(mode);
     };
     img.src = url;
   }
+
+  /* ---------- Text blocks (Markdown) ---------- */
+
+  function escapeHtml(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function renderInline(text) {
+    return escapeHtml(text)
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/__([^_]+)__/g, '<strong>$1</strong>')
+      .replace(/\*([^*]+)\*/g, '<em>$1</em>')
+      .replace(/_([^_]+)_/g, '<em>$1</em>')
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+  }
+
+  function renderMarkdown(src) {
+    const codeBlocks = [];
+    src = src.replace(/```([\s\S]*?)```/g, (_, code) => {
+      codeBlocks.push(code.replace(/^\n/, ''));
+      return ` CODEBLOCK${codeBlocks.length - 1} `;
+    });
+
+    let html = '';
+    let inUl = false, inOl = false, inQuote = false, paragraph = [];
+
+    const flushParagraph = () => {
+      if (paragraph.length) { html += `<p>${renderInline(paragraph.join(' '))}</p>`; paragraph = []; }
+    };
+    const closeLists = () => {
+      if (inUl) { html += '</ul>'; inUl = false; }
+      if (inOl) { html += '</ol>'; inOl = false; }
+    };
+    const closeQuote = () => { if (inQuote) { html += '</blockquote>'; inQuote = false; } };
+
+    src.split('\n').forEach(line => {
+      const heading = /^(#{1,6})\s+(.*)$/.exec(line);
+      const ul = /^\s*[-*+]\s+(.*)$/.exec(line);
+      const ol = /^\s*\d+\.\s+(.*)$/.exec(line);
+      const quote = /^\s*>\s?(.*)$/.exec(line);
+
+      if (!line.trim()) { flushParagraph(); closeLists(); closeQuote(); return; }
+      if (heading) {
+        flushParagraph(); closeLists(); closeQuote();
+        const level = heading[1].length;
+        html += `<h${level}>${renderInline(heading[2])}</h${level}>`;
+        return;
+      }
+      if (quote) {
+        flushParagraph(); closeLists();
+        if (!inQuote) { html += '<blockquote>'; inQuote = true; }
+        html += `<p>${renderInline(quote[1])}</p>`;
+        return;
+      }
+      closeQuote();
+      if (ul) {
+        flushParagraph();
+        if (inOl) { html += '</ol>'; inOl = false; }
+        if (!inUl) { html += '<ul>'; inUl = true; }
+        html += `<li>${renderInline(ul[1])}</li>`;
+        return;
+      }
+      if (ol) {
+        flushParagraph();
+        if (inUl) { html += '</ul>'; inUl = false; }
+        if (!inOl) { html += '<ol>'; inOl = true; }
+        html += `<li>${renderInline(ol[1])}</li>`;
+        return;
+      }
+      closeLists();
+      paragraph.push(line.trim());
+    });
+    flushParagraph(); closeLists(); closeQuote();
+
+    return html.replace(/ CODEBLOCK(\d+) /g, (_, i) => `<pre><code>${escapeHtml(codeBlocks[+i])}</code></pre>`);
+  }
+
+  function deriveTitle(src) {
+    const line = src.split('\n').find(l => l.trim());
+    return (line ? line.replace(/^#+\s*/, '').trim() : '').slice(0, 60) || 'Text block';
+  }
+
+  function addTextBlock(src) {
+    const content = document.createElement('div');
+    content.className = 'md-block';
+    content.innerHTML = renderMarkdown(src);
+    const rec = { kind: 'text', name: deriveTitle(src), areas: [], content };
+    buildStage(rec);
+    items.push(rec);
+    dropzone.classList.add('compact');
+    setMode(mode);
+  }
+
+  textBtn.addEventListener('click', () => {
+    textPanel.classList.toggle('open');
+    if (textPanel.classList.contains('open')) textInput.focus();
+  });
+  document.getElementById('cancelTextBtn').addEventListener('click', () => {
+    textInput.value = '';
+    textPanel.classList.remove('open');
+  });
+  document.getElementById('insertTextBtn').addEventListener('click', () => {
+    const val = textInput.value;
+    if (!val.trim()) return;
+    addTextBlock(val);
+    textInput.value = '';
+    textPanel.classList.remove('open');
+  });
 
   function buildStage(rec) {
     const block = document.createElement('div');
@@ -336,24 +579,26 @@
     name.className = 'name';
     name.textContent = rec.name;
     const remove = document.createElement('button');
-    remove.textContent = '✕ remove image';
+    remove.textContent = rec.kind === 'image' ? '✕ remove image' : '✕ remove text';
     remove.addEventListener('click', () => {
       if (active) restore(active);
-      URL.revokeObjectURL(rec.url);
-      images.splice(images.indexOf(rec), 1);
+      if (activeMagRec === rec) hideLens();
+      if (rec.kind === 'image') URL.revokeObjectURL(rec.url);
+      items.splice(items.indexOf(rec), 1);
       block.remove();
-      if (!images.length) dropzone.classList.remove('compact');
+      if (!items.length) dropzone.classList.remove('compact');
       setMode(mode);
     });
     head.append(name, remove);
 
     const stage = document.createElement('div');
     stage.className = 'stage';
-    rec.img.alt = rec.name;
-    stage.appendChild(rec.img);
+    if (rec.kind === 'image') rec.content.alt = rec.name;
+    stage.appendChild(rec.content);
     rec.stage = stage;
 
-    attachDrawing(rec);
+    if (rec.kind === 'image') attachDrawing(rec);
+    attachMagnify(rec);
     block.append(head, stage);
     stagesEl.appendChild(block);
   }
@@ -381,28 +626,35 @@
   function setMode(m) {
     mode = m;
     if (active) restore(active);
-    images.forEach(rec => {
-      rec.stage.classList.toggle('define', m === 'define');
-      rec.stage.classList.toggle('view', m === 'view');
-      renderAreas(rec);
+    hideLens();
+    items.forEach(rec => {
+      const isImg = rec.kind === 'image';
+      rec.stage.classList.toggle('define', m === 'define' && isImg);
+      rec.stage.classList.toggle('view', m === 'view' && isImg);
+      rec.stage.classList.toggle('magnify', m === 'magnify');
+      if (isImg) renderAreas(rec);
     });
     defineBtn.classList.toggle('active', m === 'define');
     viewBtn.classList.toggle('active', m === 'view');
-    const total = images.reduce((n, r) => n + r.areas.length, 0);
-    hint.textContent = !images.length
-      ? 'Upload, drop, or paste images to begin.'
+    magnifyBtn.classList.toggle('active', m === 'magnify');
+    const total = items.reduce((n, r) => n + r.areas.length, 0);
+    hint.textContent = !items.length
+      ? 'Upload images or add a text block to begin.'
       : m === 'define'
         ? 'Drag on an image to draw an area. Use ✕ to remove one, then switch to View.'
-        : total
-          ? 'Click an area to enlarge it. Click again, click the backdrop, or press Esc to put it back.'
-          : 'No areas defined yet — switch to Define areas and drag on an image.';
+        : m === 'view'
+          ? (total
+            ? 'Click an area to enlarge it. Click again, click the backdrop, or press Esc to put it back.'
+            : 'No areas defined yet — switch to Define areas and drag on an image.')
+          : 'Press and hold anywhere on an image or text block to magnify that spot. Scroll to zoom, release to close.';
   }
 
   defineBtn.addEventListener('click', () => setMode('define'));
   viewBtn.addEventListener('click', () => setMode('view'));
+  magnifyBtn.addEventListener('click', () => setMode('magnify'));
   document.getElementById('clearBtn').addEventListener('click', () => {
     if (active) restore(active);
-    images.forEach(rec => { rec.areas = []; });
+    items.forEach(rec => { if (rec.kind === 'image') rec.areas = []; });
     setMode(mode);
   });
 
@@ -536,12 +788,87 @@
   backdrop.addEventListener('click', () => { if (active) restore(active); });
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && active) restore(active);
+    if (e.key === 'Escape' && activeMagRec) hideLens();
   });
 
   window.addEventListener('resize', () => {
     if (active) restore(active);
-    images.forEach(renderAreas);
+    hideLens();
+    items.forEach(rec => { if (rec.kind === 'image') renderAreas(rec); });
   });
+
+  /* ---------- Magnifier (magnify mode) ---------- */
+
+  function updateLens() {
+    const rec = activeMagRec;
+    if (!rec) return;
+    const rect = rec.content.getBoundingClientRect();
+    const localX = Math.min(Math.max(lastPX - rect.left, 0), rect.width);
+    const localY = Math.min(Math.max(lastPY - rect.top, 0), rect.height);
+
+    const key = String(items.indexOf(rec));
+    if (lensInner.dataset.forRec !== key) {
+      lensInner.innerHTML = '';
+      const clone = rec.content.cloneNode(true);
+      clone.style.position = 'absolute';
+      clone.style.top = '0';
+      clone.style.left = '0';
+      clone.style.margin = '0';
+      clone.style.maxWidth = 'none';
+      clone.style.width = rect.width + 'px';
+      clone.style.height = rect.height + 'px';
+      clone.style.pointerEvents = 'none';
+      if (clone.tagName === 'IMG') clone.draggable = false;
+      lensInner.appendChild(clone);
+      lensInner.dataset.forRec = key;
+    }
+
+    const tx = LENS_SIZE / 2 - localX * magZoom;
+    const ty = LENS_SIZE / 2 - localY * magZoom;
+    lensInner.style.transform = `translate(${tx}px, ${ty}px) scale(${magZoom})`;
+    lens.style.left = (lastPX - LENS_SIZE / 2) + 'px';
+    lens.style.top = (lastPY - LENS_SIZE / 2) + 'px';
+  }
+
+  function hideLens() {
+    if (!activeMagRec) return;
+    lensActive = false;
+    activeMagRec = null;
+    lens.style.display = 'none';
+    lensInner.innerHTML = '';
+    delete lensInner.dataset.forRec;
+  }
+
+  function attachMagnify(rec) {
+    const stage = rec.stage;
+
+    stage.addEventListener('pointerdown', e => {
+      if (mode !== 'magnify' || e.button !== 0) return;
+      e.preventDefault();
+      activeMagRec = rec;
+      lensActive = true;
+      lastPX = e.clientX; lastPY = e.clientY;
+      lens.style.display = 'block';
+      updateLens();
+      try { stage.setPointerCapture(e.pointerId); } catch {}
+    });
+
+    stage.addEventListener('pointermove', e => {
+      if (!lensActive || activeMagRec !== rec) return;
+      lastPX = e.clientX; lastPY = e.clientY;
+      updateLens();
+    });
+
+    stage.addEventListener('pointerup', () => { if (activeMagRec === rec) hideLens(); });
+    stage.addEventListener('pointercancel', () => { if (activeMagRec === rec) hideLens(); });
+
+    stage.addEventListener('wheel', e => {
+      if (mode !== 'magnify' || !lensActive || activeMagRec !== rec) return;
+      e.preventDefault();
+      magZoom = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, magZoom + (e.deltaY < 0 ? 0.2 : -0.2)));
+      updateLens();
+    }, { passive: false });
+  }
 })();
 </script>
 
