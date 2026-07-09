@@ -1,0 +1,93 @@
+{
+  "meta": {
+    "deckTitle": "Kpow for Confluent Cloud — TD Bank",
+    "presenter": "Platform Engineering, TD Bank",
+    "date": "2026",
+    "brand": "TD Bank"
+  },
+  "slides": [
+    {
+      "id": "title",
+      "kind": "title",
+      "eyebrow": "TD Bank  ×  Factor House",
+      "heading": "Kpow for Confluent Cloud",
+      "subheading": "Monitoring, Operations & Developer Enablement",
+      "body": "How our platform team gives every Kafka stakeholder — SRE, ops, and application teams — one console for Confluent Cloud."
+    },
+    {
+      "id": "gap",
+      "kind": "content",
+      "eyebrow": "The Challenge",
+      "heading": "Confluent Cloud is powerful. Visibility isn't included.",
+      "bullets": [
+        "Confluent Cloud gives us a managed, resilient Kafka backbone — but day-to-day questions (\"why is this consumer lagging?\", \"who touched this topic?\") still need tooling on top.",
+        "Without a shared console, every team builds its own scripts against the Admin API — inconsistent, unaudited, and slow to onboard.",
+        "Kpow sits on top of Confluent Cloud as a single pane of glass for observability, operations, and governed self-service."
+      ],
+      "image": "images/kpow-hero.avif",
+      "imageAlt": "Kpow dashboard showing real-time cluster health, consumer lag, and topic inspection",
+      "imageCaption": "Kpow's home view: cluster health, consumer lag, and topic activity in one screen."
+    },
+    {
+      "id": "monitoring",
+      "kind": "content",
+      "eyebrow": "Monitoring",
+      "heading": "Observe: real-time health, down to the partition",
+      "bullets": [
+        "Broker sync state and under-replicated partitions surfaced immediately — no more waiting on a Grafana lag alert.",
+        "Consumer lag broken down by group, topic, and partition, so on-call can pinpoint the exact bottleneck.",
+        "Kafka Streams topologies rendered live with per-node metrics, and everything exportable to our existing Prometheus stack."
+      ],
+      "image": "images/kpow-observe.avif",
+      "imageAlt": "Kpow Observe view with cluster health and consumer lag metrics",
+      "imageCaption": "Observe: cluster health and consumer lag, broken down by partition."
+    },
+    {
+      "id": "operations",
+      "kind": "content",
+      "eyebrow": "Operations",
+      "heading": "Manage & Inspect: safe changes, fast troubleshooting",
+      "bullets": [
+        "Topic, ACL, consumer group, schema, and connector lifecycle — all from one console, every action captured in an audit trail.",
+        "kJQ lets us search across hundreds of topics in seconds, filtering by key, header, or message content, with schema-aware decoding for Avro/Protobuf.",
+        "What used to be a 4-hour, multi-tool incident chase becomes a single search — no more tailing logs blind."
+      ],
+      "image": "images/kpow-manage.avif",
+      "imageAlt": "Kpow Manage view showing topic and consumer group operations",
+      "imageCaption": "Manage: topic, consumer group, and connector operations with a full audit trail."
+    },
+    {
+      "id": "enablement",
+      "kind": "content",
+      "eyebrow": "Developer & Team Enablement",
+      "heading": "Govern: self-service, without losing control",
+      "bullets": [
+        "Role-based access, scoped per team and per environment, so application teams get read/write where they need it — and nowhere else.",
+        "SSO through our existing Okta/Azure AD, so onboarding a new team is a config change, not a ticket queue.",
+        "Field-level PII masking keeps message payloads safe to inspect, and every action — UI, webhook, or API — is logged for audit.",
+        "This is how we replaced \"file a platform ticket and wait\" with governed self-service for our internal developer teams."
+      ],
+      "image": "images/kpow-govern.avif",
+      "imageAlt": "Kpow Govern view showing role-based access control and audit logs",
+      "imageCaption": "Govern: role-based access, SSO, PII masking, and audit logging."
+    },
+    {
+      "id": "proof",
+      "kind": "proof",
+      "eyebrow": "Proven at Scale",
+      "heading": "We're not the first bank to bet on this",
+      "stats": [
+        { "value": "4hrs → <2hrs", "label": "debugging time cut in half" },
+        { "value": "200+", "label": "topics unified under one console" },
+        { "value": "500M+", "label": "messages processed daily" }
+      ],
+      "quote": {
+        "text": "Thanks to Kpow, we halved the time needed for debugging. When it's bad data, we're very effective at figuring out why it's bad.",
+        "attribution": "Erik Schumann, Central Kafka Team, NORD/LB",
+        "image": "images/nordlb-erik.png"
+      },
+      "logos": ["TD Bank", "Worldpay", "Block", "NORD/LB"],
+      "cta": "Questions?"
+    }
+  ]
+}

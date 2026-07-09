@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kpow for Confluent Cloud — TD Bank</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="deck">
+  <div id="progress"><div id="progressBar"></div></div>
+
+  <button class="nav-arrow nav-prev" id="prevBtn" aria-label="Previous slide">&#8249;</button>
+  <button class="nav-arrow nav-next" id="nextBtn" aria-label="Next slide">&#8250;</button>
+
+  <div id="slides"></div>
+
+  <div id="dots"></div>
+
+  <p class="hint">Use ← / → to navigate &middot; click anywhere on a slide to magnify that spot</p>
+</div>
+
+<div id="magnifyOverlay">
+  <div id="magnifyBox"><div id="magnifyInner"></div></div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
